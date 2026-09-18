@@ -289,85 +289,205 @@ async function updateStatus(bookingId, status, reason = null, cardElement = null
 }
 
 /**
- * 4. Client-side Search & Category Filtering (Feature 2 & DP3 Sorting)
+ * 4. Comprehensive Client-side Live Filtering, Category Switching & Sorting (Feature 2 & DP3)
  */
 function initLiveSearchFilter() {
     const searchInput = document.getElementById('marketplace-search');
+    const searchClearBtn = document.getElementById('search-clear-btn');
     const gigsGrid = document.getElementById('marketplace-gigs-grid');
     const sortSelect = document.getElementById('sort-select');
     const filterForm = document.getElementById('marketplace-filter-form');
+    const categoryInput = document.getElementById('marketplace-category-input');
+    const categoryChips = document.querySelectorAll('#category-chips-container .category-chip, .category-chips .category-chip');
+    const noGigsFound = document.getElementById('no-gigs-found');
+    const resetAllBtn = document.getElementById('reset-all-filters-btn');
+    const clearAllBtn = document.getElementById('clear-all-btn');
 
-    if (searchInput && gigsGrid) {
-        let debounceTimer;
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                const query = e.target.value.toLowerCase().trim();
-                let matchCount = 0;
-                const gigCards = gigsGrid.querySelectorAll('.gig-card');
+    function applyMarketplaceFilters(overrides = {}) {
+        const currentCategory = overrides.category !== undefined 
+            ? overrides.category 
+            : (categoryInput ? categoryInput.value : 'All');
 
-                gigCards.forEach(card => {
-                    const title = (card.getAttribute('data-title') || '').toLowerCase();
-                    const desc = (card.getAttribute('data-desc') || '').toLowerCase();
-                    const creator = (card.getAttribute('data-creator') || '').toLowerCase();
-                    const cat = (card.getAttribute('data-category') || '').toLowerCase();
+        const currentQuery = overrides.query !== undefined 
+            ? overrides.query.toLowerCase().trim() 
+            : (searchInput ? searchInput.value.toLowerCase().trim() : '');
 
-                    if (!query || title.includes(query) || desc.includes(query) || creator.includes(query) || cat.includes(query)) {
-                        card.style.display = 'flex';
-                        matchCount++;
+        const currentSort = overrides.sort !== undefined 
+            ? overrides.sort 
+            : (sortSelect ? sortSelect.value : 'fair');
+
+        // 1. Sync Form Controls
+        if (categoryInput) categoryInput.value = currentCategory;
+        if (sortSelect && overrides.sort !== undefined) sortSelect.value = currentSort;
+        if (searchInput && overrides.query !== undefined) searchInput.value = overrides.query;
+
+        // 2. Toggle Search Clear Button
+        if (searchClearBtn) {
+            searchClearBtn.style.display = (searchInput && searchInput.value.trim().length > 0) ? 'inline-flex' : 'none';
+        }
+
+        // 3. Update Category Chips Active State
+        categoryChips.forEach(chip => {
+            const chipCat = chip.getAttribute('data-category') || 'All';
+            if (chipCat.toLowerCase() === currentCategory.toLowerCase() || (currentCategory.toLowerCase() === 'all' && chipCat.toLowerCase() === 'all')) {
+                chip.classList.add('active');
+            } else {
+                chip.classList.remove('active');
+            }
+        });
+
+        // 4. Filter and Sort Gig Cards in DOM
+        if (gigsGrid) {
+            const gigCards = Array.from(gigsGrid.querySelectorAll('.gig-card'));
+            let matchCount = 0;
+
+            // Visibility Filtering
+            gigCards.forEach(card => {
+                const title = (card.getAttribute('data-title') || '').toLowerCase();
+                const desc = (card.getAttribute('data-desc') || '').toLowerCase();
+                const creator = (card.getAttribute('data-creator') || '').toLowerCase();
+                const cardCat = (card.getAttribute('data-category') || '').toLowerCase();
+
+                const categoryMatch = (currentCategory.toLowerCase() === 'all' || !currentCategory || cardCat === currentCategory.toLowerCase());
+                const searchMatch = (!currentQuery || title.includes(currentQuery) || desc.includes(currentQuery) || creator.includes(currentQuery) || cardCat.includes(currentQuery));
+
+                if (categoryMatch && searchMatch) {
+                    card.style.display = 'flex';
+                    matchCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Sorting
+            if (gigCards.length > 0) {
+                gigCards.sort((a, b) => {
+                    const idA = parseInt(a.getAttribute('data-id') || '0', 10);
+                    const idB = parseInt(b.getAttribute('data-id') || '0', 10);
+                    const rateA = parseFloat(a.getAttribute('data-rate') || '0');
+                    const rateB = parseFloat(b.getAttribute('data-rate') || '0');
+                    const createdA = parseInt(a.getAttribute('data-created') || '0', 10);
+                    const createdB = parseInt(b.getAttribute('data-created') || '0', 10);
+                    const ratingA = parseFloat(a.getAttribute('data-rating') || '0');
+                    const ratingB = parseFloat(b.getAttribute('data-rating') || '0');
+
+                    if (currentSort === 'newest') {
+                        return (createdB - createdA) || (idB - idA);
+                    } else if (currentSort === 'cheapest') {
+                        return (rateA - rateB) || (idB - idA);
+                    } else if (currentSort === 'expensive') {
+                        return (rateB - rateA) || (idB - idA);
                     } else {
-                        card.style.display = 'none';
+                        // 'fair' default ranking (or id DESC tie-breaker)
+                        return (ratingB - ratingA) || (idB - idA);
                     }
                 });
 
-                const noResults = document.getElementById('no-gigs-found');
-                if (noResults) {
-                    noResults.style.display = matchCount === 0 ? 'block' : 'none';
-                }
-            }, 180);
-        });
-    }
-
-    if (sortSelect) {
-        sortSelect.addEventListener('change', (e) => {
-            const sortVal = e.target.value;
-            
-            // 1. Instant Client-Side DOM Re-order for immediate responsiveness
-            if (gigsGrid) {
-                const gigCards = Array.from(gigsGrid.querySelectorAll('.gig-card'));
-                if (gigCards.length > 0) {
-                    gigCards.sort((a, b) => {
-                        const idA = parseInt(a.getAttribute('data-id') || '0', 10);
-                        const idB = parseInt(b.getAttribute('data-id') || '0', 10);
-                        const rateA = parseFloat(a.getAttribute('data-rate') || '0');
-                        const rateB = parseFloat(b.getAttribute('data-rate') || '0');
-                        const createdA = parseInt(a.getAttribute('data-created') || '0', 10);
-                        const createdB = parseInt(b.getAttribute('data-created') || '0', 10);
-
-                        if (sortVal === 'newest') {
-                            return (createdB - createdA) || (idB - idA);
-                        } else if (sortVal === 'cheapest') {
-                            return (rateA - rateB) || (idB - idA);
-                        } else if (sortVal === 'expensive') {
-                            return (rateB - rateA) || (idB - idA);
-                        }
-                        return idB - idA;
-                    });
-
-                    gigCards.forEach(card => gigsGrid.appendChild(card));
-                }
+                gigCards.forEach(card => gigsGrid.appendChild(card));
             }
 
-            // 2. Submit form to synchronize server-side query state & preserve category/search
-            if (filterForm) {
-                filterForm.submit();
+            // 5. Update Empty State Message
+            if (noGigsFound) {
+                noGigsFound.style.display = matchCount === 0 ? 'block' : 'none';
+            }
+        }
+
+        // 6. Synchronize URL State
+        try {
+            const url = new URL(window.location.href);
+            if (currentCategory && currentCategory.toLowerCase() !== 'all') {
+                url.searchParams.set('category', currentCategory);
             } else {
-                const currentUrl = new URL(window.location.href);
-                currentUrl.searchParams.set('sort', sortVal);
-                window.location.href = currentUrl.toString();
+                url.searchParams.delete('category');
             }
+            if (currentQuery) {
+                url.searchParams.set('q', currentQuery);
+            } else {
+                url.searchParams.delete('q');
+            }
+            if (currentSort && currentSort !== 'fair') {
+                url.searchParams.set('sort', currentSort);
+            } else {
+                url.searchParams.delete('sort');
+            }
+            window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+        } catch (err) {
+            // Silently handled
+        }
+    }
+
+    // Category Chip Click Handler
+    categoryChips.forEach(chip => {
+        chip.addEventListener('click', (e) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey) return; // Allow opening in new tab
+            e.preventDefault();
+            const targetCat = chip.getAttribute('data-category') || 'All';
+
+            // If the grid was rendered with only a specific category from server and target is missing:
+            const allCards = gigsGrid ? gigsGrid.querySelectorAll('.gig-card') : [];
+            const hasTargetCards = gigsGrid ? gigsGrid.querySelector(`.gig-card[data-category="${targetCat}"]`) : null;
+            if (targetCat.toLowerCase() !== 'all' && !hasTargetCards && allCards.length < 5) {
+                window.location.href = chip.getAttribute('href');
+                return;
+            }
+
+            applyMarketplaceFilters({ category: targetCat });
+        });
+    });
+
+    // Live Search Input Handler
+    if (searchInput) {
+        let debounceTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                applyMarketplaceFilters();
+            }, 60);
         });
     }
+
+    // Search Clear Button Handler
+    if (searchClearBtn) {
+        searchClearBtn.addEventListener('click', () => {
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+            }
+            applyMarketplaceFilters({ query: '' });
+        });
+    }
+
+    // Sort Dropdown Change Handler
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+            applyMarketplaceFilters({ sort: sortSelect.value });
+        });
+    }
+
+    // Filter Form Submit Handler
+    if (filterForm) {
+        filterForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            applyMarketplaceFilters();
+        });
+    }
+
+    // Reset All Buttons
+    if (resetAllBtn) {
+        resetAllBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            applyMarketplaceFilters({ category: 'All', query: '', sort: 'fair' });
+        });
+    }
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            applyMarketplaceFilters({ category: 'All', query: '', sort: 'fair' });
+        });
+    }
+
+    // Initial Sort & Filter Application on Page Ready
+    applyMarketplaceFilters();
 }
 
 /**

@@ -191,18 +191,34 @@ function getGigs(?string $category = null, ?string $search = null, string $sort 
     $where = [];
     $sort = strtolower(trim((string)$sort));
 
-    if (!empty($category) && $category !== 'All' && in_array($category, ALLOWED_CATEGORIES, true)) {
+    // Case-insensitive category resolution against ALLOWED_CATEGORIES
+    $matchedCategory = null;
+    if (!empty($category) && strcasecmp(trim($category), 'all') !== 0) {
+        $trimmedCat = trim($category);
+        foreach (ALLOWED_CATEGORIES as $allowedCat) {
+            if (strcasecmp($allowedCat, $trimmedCat) === 0) {
+                $matchedCategory = $allowedCat;
+                break;
+            }
+        }
+        if ($matchedCategory === null && mb_strlen($trimmedCat) > 0) {
+            $matchedCategory = $trimmedCat;
+        }
+    }
+
+    if ($matchedCategory !== null) {
         $where[] = "g.category = :category";
-        $params[':category'] = $category;
+        $params[':category'] = $matchedCategory;
     }
 
     if (!empty($search)) {
         $search = mb_substr(trim($search), 0, 100);
-        $where[] = "(g.title LIKE :search_title OR g.description LIKE :search_desc OR g.creator_name LIKE :search_creator)";
+        $where[] = "(g.title LIKE :search_title OR g.description LIKE :search_desc OR g.creator_name LIKE :search_creator OR g.category LIKE :search_cat)";
         $searchParam = '%' . $search . '%';
         $params[':search_title'] = $searchParam;
         $params[':search_desc'] = $searchParam;
         $params[':search_creator'] = $searchParam;
+        $params[':search_cat'] = $searchParam;
     }
 
     $whereSql = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
