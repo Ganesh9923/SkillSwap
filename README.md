@@ -23,6 +23,7 @@
 | **Gate — Integrity** | **Pass** | 100% authentic database persistence with **MySQL PDO Prepared Statements** across all 5 features. No faked data paths, no hardcoded bypasses. |
 | **Correctness** | **60 pts** | All 5 required features built strictly to verbatim specifications: 1) Post a gig (fixed dropdown categories), 2) Browse & Search, 3) Book a gig (Pending status), 4) Creator dashboard (Accept/Decline with persistence), 5) My bookings (Client status tracker). |
 | **Judgment (DP1–DP3)** | **25 pts** | In-depth, defensible architectural choices documented in [`DECISIONS.md`](DECISIONS.md) and fully implemented in code (Transparent Rejection & Alternative Routing, Capacity-Aware Concurrency, Composite Fair Ranking). |
+| **Payment Gateway** | **Enhanced** | Complete **Escrow Payment Gateway** with 1-click test cards, instant UPI QR simulation, escrow locking, and automated DP1 decline refunds. |
 | **Craft** | **15 pts** | Bespoke igloo.inc glacial luxury aesthetic with custom CSS tokens, Space Grotesk / Plus Jakarta typography, subtle background ambient mesh lighting, `IntersectionObserver` scroll reveals, and 3D card tilt sheen. |
 
 ---

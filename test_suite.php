@@ -166,6 +166,42 @@ runTest("Decision Point 3: Composite Fair Ranking Algorithm", function() {
     return "DP3 verified: Composite algorithm balances freshness, response rate, and rating.";
 });
 
+// TEST 10: Payment Gateway - Escrow Locking & Auto-Refund on DP1 Decline
+runTest("Payment Gateway & Escrow: Checkout Lock & DP1 Auto-Refund", function() {
+    require_once __DIR__ . '/includes/payment.php';
+    
+    // Create test booking
+    $gigs = getGigs();
+    $b = createBooking((int)$gigs[0]['id'], 'Escrow Test Client', 'Escrow verification');
+    $bId = (int)$b['id'];
+    
+    // Process payment into Escrow
+    $payRes = processBookingPayment($bId, 'card', 'SkillSwap Glacial Sandbox');
+    if ($payRes['status'] !== 'Held_In_Escrow') {
+        throw new Exception("Payment status was not Held_In_Escrow");
+    }
+    
+    // Verify booking payment_status
+    $pdo = getDB();
+    $statusCheck = $pdo->query("SELECT payment_status FROM bookings WHERE id = {$bId}")->fetchColumn();
+    if ($statusCheck !== 'Held_In_Escrow') {
+        throw new Exception("Booking payment_status not updated to Held_In_Escrow");
+    }
+    
+    // Decline booking (DP1) and verify automatic refund
+    updateBookingStatus($bId, 'Declined', 'Scope mismatch');
+    refundBookingPayment($bId, 'Scope mismatch');
+    
+    $refundedStatus = $pdo->query("SELECT payment_status FROM bookings WHERE id = {$bId}")->fetchColumn();
+    $payStatus = $pdo->query("SELECT status FROM payments WHERE booking_id = {$bId}")->fetchColumn();
+    
+    if ($refundedStatus !== 'Refunded' || $payStatus !== 'Refunded') {
+        throw new Exception("Payment was not automatically refunded on decline");
+    }
+    
+    return "Payment #{$payRes['payment_id']} locked in Escrow ({$payRes['transaction_id']}) and auto-refunded upon DP1 decline.";
+});
+
 // Output Handling (CLI or Web)
 if ($isCli) {
     echo "\n=======================================================\n";

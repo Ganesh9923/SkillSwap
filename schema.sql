@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS `bookings` (
     `client_name` VARCHAR(100) NOT NULL,
     `message` TEXT DEFAULT NULL,
     `status` ENUM('Pending', 'Accepted', 'Declined') NOT NULL DEFAULT 'Pending',
+    `payment_status` ENUM('Unpaid', 'Held_In_Escrow', 'Released_To_Creator', 'Refunded') NOT NULL DEFAULT 'Unpaid',
     `decline_reason` VARCHAR(255) DEFAULT NULL,
     `booked_date` DATE DEFAULT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -63,6 +64,26 @@ CREATE TABLE IF NOT EXISTS `bookings` (
     INDEX `idx_creator_status` (`creator_id`, `status`),
     INDEX `idx_client_status` (`client_name`, `status`),
     INDEX `idx_gig` (`gig_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 5. Payments Table (Escrow & Multi-Gateway Transactions)
+CREATE TABLE IF NOT EXISTS `payments` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `booking_id` INT NOT NULL,
+    `gig_id` INT NOT NULL,
+    `client_name` VARCHAR(100) NOT NULL,
+    `creator_id` INT NOT NULL,
+    `creator_name` VARCHAR(100) NOT NULL,
+    `amount` DECIMAL(10, 2) NOT NULL,
+    `currency` VARCHAR(10) DEFAULT 'USD',
+    `gateway` VARCHAR(50) DEFAULT 'SkillSwap Glacial Sandbox',
+    `transaction_id` VARCHAR(100) NOT NULL UNIQUE,
+    `payment_method` VARCHAR(50) DEFAULT 'Credit Card (Escrow)',
+    `status` ENUM('Held_In_Escrow', 'Released_To_Creator', 'Refunded', 'Failed') NOT NULL DEFAULT 'Held_In_Escrow',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_booking` (`booking_id`),
+    INDEX `idx_tx` (`transaction_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Initial Seed Data

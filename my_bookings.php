@@ -124,7 +124,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <h3 style="font-size: 1.25rem; color: #fff;"><?= h($b['gig_title']) ?></h3>
                             </div>
 
-                            <div style="display: flex; align-items: center; gap: 1.25rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
                                 <div style="font-family: var(--font-heading); font-weight: 700; font-size: 1.35rem; color: var(--ice-200);">
                                     <?= formatRate($b['rate']) ?>
                                 </div>
@@ -132,6 +132,10 @@ require_once __DIR__ . '/includes/header.php';
                                     <span class="status-dot"></span>
                                     <?= h($b['status']) ?>
                                 </span>
+                                <?php 
+                                    require_once __DIR__ . '/includes/payment.php';
+                                    echo getPaymentStatusBadge($b['payment_status'] ?? 'Unpaid');
+                                ?>
                             </div>
                         </div>
 
@@ -162,6 +166,18 @@ require_once __DIR__ . '/includes/header.php';
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Payment & Escrow Action Bar -->
+                        <?php if (($b['payment_status'] ?? 'Unpaid') === 'Unpaid' && $b['status'] !== 'Declined'): ?>
+                            <div style="margin-bottom: 1rem; background: rgba(14, 165, 233, 0.08); border: 1px solid var(--border-ice); padding: 0.85rem 1.25rem; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                                <div style="font-size: 0.88rem; color: var(--ice-200);">
+                                    🛡️ <strong>Escrow Unfunded:</strong> Secure your project spot by locking funds into SkillSwap Escrow.
+                                </div>
+                                <a href="checkout.php?booking_id=<?= $b['id'] ?>" class="btn btn-sm btn-primary">
+                                    <span>💳 Pay <?= formatRate($b['rate']) ?> into Escrow</span>
+                                </a>
+                            </div>
+                        <?php endif; ?>
 
                         <!-- Status Explanation & DP1 Rejection Resolution -->
                         <?php if ($isPending): ?>

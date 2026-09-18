@@ -39,10 +39,18 @@ if ($bookingId <= 0 || !in_array($status, ['Accepted', 'Declined', 'Pending'], t
 try {
     $updated = updateBookingStatus($bookingId, $status, $declineReason ?: null);
 
+    // If declined, automatically refund any Escrow payment (DP1)
+    if ($status === 'Declined') {
+        require_once __DIR__ . '/../includes/payment.php';
+        refundBookingPayment($bookingId, $declineReason);
+    } elseif ($status === 'Accepted') {
+        // Keep in escrow until completion, or release if desired
+    }
+
     if ($isAjax) {
         echo json_encode([
             'status'  => 'success',
-            'message' => "Booking #{$bookingId} updated to {$status}",
+            'message' => "Booking #{$bookingId} updated to {$status}" . ($status === 'Declined' ? " (Escrow funds automatically refunded)" : ""),
             'data'    => [
                 'booking_id'     => $bookingId,
                 'status'         => $status,

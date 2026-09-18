@@ -68,9 +68,40 @@ function ensureSkillSwapSchema(PDO $pdo): void {
                 $sql = file_get_contents($schemaFile);
                 $pdo->exec($sql);
             }
+        } else {
+            // Check if payment_status exists in bookings
+            $colCheck = $pdo->query("SHOW COLUMNS FROM `bookings` LIKE 'payment_status'");
+            if ($colCheck->rowCount() === 0) {
+                $pdo->exec("ALTER TABLE `bookings` ADD COLUMN `payment_status` ENUM('Unpaid', 'Held_In_Escrow', 'Released_To_Creator', 'Refunded') NOT NULL DEFAULT 'Unpaid' AFTER `status`");
+            }
+
+            // Check if payments table exists
+            $payCheck = $pdo->query("SHOW TABLES LIKE 'payments'");
+            if ($payCheck->rowCount() === 0) {
+                $pdo->exec("
+                    CREATE TABLE IF NOT EXISTS `payments` (
+                        `id` INT AUTO_INCREMENT PRIMARY KEY,
+                        `booking_id` INT NOT NULL,
+                        `gig_id` INT NOT NULL,
+                        `client_name` VARCHAR(100) NOT NULL,
+                        `creator_id` INT NOT NULL,
+                        `creator_name` VARCHAR(100) NOT NULL,
+                        `amount` DECIMAL(10, 2) NOT NULL,
+                        `currency` VARCHAR(10) DEFAULT 'USD',
+                        `gateway` VARCHAR(50) DEFAULT 'SkillSwap Glacial Sandbox',
+                        `transaction_id` VARCHAR(100) NOT NULL UNIQUE,
+                        `payment_method` VARCHAR(50) DEFAULT 'Credit Card (Escrow)',
+                        `status` ENUM('Held_In_Escrow', 'Released_To_Creator', 'Refunded', 'Failed') NOT NULL DEFAULT 'Held_In_Escrow',
+                        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        INDEX `idx_booking` (`booking_id`),
+                        INDEX `idx_tx` (`transaction_id`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                ");
+            }
         }
     } catch (PDOException $e) {
-        // Log or silently handle if tables already exist
+        // Silently handle
     }
 }
 
