@@ -83,7 +83,7 @@ require_once __DIR__ . '/includes/header.php';
                     💳 Sandbox Card
                 </button>
                 <button type="button" class="btn btn-sm btn-secondary" id="tab-escrow" style="flex: 1; min-width: 140px;" onclick="switchPaymentTab('escrow')">
-                    🛡️ Escrow Vault
+                    🛡️ Demo Payment (testing vault)
                 </button>
             </div>
 
@@ -157,7 +157,7 @@ require_once __DIR__ . '/includes/header.php';
                 </form>
             </div>
 
-            <!-- ESCROW VAULT FORM -->
+            <!-- DEMO PAYMENT (TESTING VAULT) FORM -->
             <div id="section-escrow" style="display: none; padding: 1rem 0;">
                 <form id="escrow-form" method="POST" action="actions/process_payment.php">
                     <!-- Bot Protection Honeypot -->
@@ -167,15 +167,15 @@ require_once __DIR__ . '/includes/header.php';
                     <input type="hidden" name="payment_method" value="escrow">
 
                     <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
-                        <div style="font-weight: 700; color: #34d399; margin-bottom: 0.25rem;">🛡️ Verified Escrow Protection</div>
+                        <div style="font-weight: 700; color: #34d399; margin-bottom: 0.25rem;">🛡️ Demo Payment (Testing Vault)</div>
                         <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
-                            Funds are transferred into an encrypted cryptographic vault. Payment is automatically refunded if creator declines in DP1, and only released when you approve completed work.
+                            Simulate an instant demo payment held safely in the testing vault without charging real money. Test funds are automatically refunded if the creator declines in DP1, and released upon project approval.
                         </p>
                     </div>
 
                     <div style="margin-top: 1.75rem;">
                         <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
-                            <span>🔒 Pay <?= formatRate($amount) ?> & Secure Escrow</span>
+                            <span>🔒 Confirm Demo Payment (<?= formatRate($amount) ?>)</span>
                         </button>
                     </div>
                 </form>
