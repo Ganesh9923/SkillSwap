@@ -50,26 +50,26 @@ require_once __DIR__ . '/includes/header.php';
 <main class="container" style="padding-top: 2rem;">
     <?php if (!$isCreator): ?>
         <!-- Client Guidance Banner: Enforcing Role Boundary -->
-        <div class="glass-panel reveal" style="padding: 2rem; margin-bottom: 2.5rem; border: 1px solid rgba(245, 158, 11, 0.4); background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(15, 23, 42, 0.7));">
+        <div class="glass-panel" style="padding: 1.75rem 2rem; margin-bottom: 2.5rem; border: 1px solid #e2cb9c; background: #fffdfa; border-radius: var(--radius-lg); box-shadow: 0 4px 16px rgba(0,0,0,0.03);">
             <div style="display: flex; align-items: flex-start; gap: 1.25rem; flex-wrap: wrap;">
                 <div style="font-size: 2.2rem; line-height: 1;">💼</div>
                 <div style="flex: 1; min-width: 280px;">
                     <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
-                        <span class="category-tag" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4);">
+                        <span class="category-tag" style="background: #fef3c7; color: #92400e; font-weight: 700; border: 1px solid #fde68a;">
                             Client Mode Active
                         </span>
-                        <h2 style="font-size: 1.35rem; color: #fff; margin: 0;">Viewing as Client: <?= h($activePersona['name']) ?></h2>
+                        <h2 style="font-size: 1.35rem; color: var(--ink); margin: 0;">Viewing as Client: <?= h($activePersona['name']) ?></h2>
                     </div>
-                    <p class="text-muted" style="margin-bottom: 1.25rem; font-size: 0.92rem; line-height: 1.6;">
+                    <p style="margin-bottom: 1.25rem; font-size: 0.95rem; color: var(--ink-soft); line-height: 1.65;">
                         The <strong>Creator Hub &amp; Gig Studio</strong> is reserved for <strong>Creators</strong> to post service listings and manage incoming client contracts. As a client, your core workflow is browsing gigs in the marketplace and tracking your inquiries in <strong>My Bookings</strong>.
                     </p>
                     <div style="margin-bottom: 1.25rem;">
-                        <div style="font-size: 0.85rem; color: var(--ice-200); margin-bottom: 0.6rem; font-weight: 600;">
+                        <div style="font-size: 0.88rem; color: var(--ink); margin-bottom: 0.6rem; font-weight: 700;">
                             ✨ Switch to a Creator persona to post gigs or manage incoming inquiries:
                         </div>
                         <div style="display: flex; flex-wrap: wrap; gap: 0.6rem;">
                             <?php foreach (DEMO_CREATORS as $dc): ?>
-                                <a href="creator.php?as_creator=<?= $dc['id'] ?>" class="btn btn-sm btn-secondary" style="border: 1px solid var(--border-ice);">
+                                <a href="creator.php?as_creator=<?= $dc['id'] ?>" class="btn btn-sm btn-secondary" style="border: 1px solid var(--line); font-weight: 600;">
                                     <span>👤 <?= h($dc['name']) ?> (<?= h($dc['category']) ?>)</span>
                                 </a>
                             <?php endforeach; ?>
@@ -85,18 +85,18 @@ require_once __DIR__ . '/includes/header.php';
     <?php endif; ?>
 
     <!-- Creator Profile Header -->
-    <div class="glass-panel reveal" style="padding: 2rem; margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+    <div class="glass-panel" style="padding: 2rem; margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; border: 1px solid var(--line); background: var(--paper);">
         <div style="display: flex; align-items: center; gap: 1.25rem;">
             <img src="<?= h($creatorData['avatar']) ?>" alt="<?= h($creatorData['name']) ?>" 
-                 style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border-ice); box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);">
+                 style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid var(--line); box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
             <div>
                 <div style="display: flex; align-items: center; gap: 0.6rem;">
-                    <h1 style="font-size: 1.6rem; color: #fff;"><?= h($creatorData['name']) ?></h1>
-                    <span class="category-tag" style="background: rgba(56, 189, 248, 0.15); color: var(--ice-300); border: 1px solid var(--border-ice);">
+                    <h1 style="font-size: 1.75rem; color: var(--ink); margin: 0;"><?= h($creatorData['name']) ?></h1>
+                    <span class="category-tag" style="background: var(--accent-soft); color: var(--accent); border: 1px solid var(--border-ice); font-weight: 600;">
                         Verified Creator
                     </span>
                 </div>
-                <p class="text-muted" style="font-size: 0.95rem; margin-top: 0.2rem;"><?= h($creatorData['role']) ?></p>
+                <p style="font-size: 0.95rem; color: var(--ink-soft); margin-top: 0.25rem;"><?= h($creatorData['role']) ?></p>
             </div>
         </div>
 
@@ -113,9 +113,9 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 
     <!-- Creator Metrics Row -->
-    <section class="dashboard-metrics reveal stagger-1">
+    <section class="dashboard-metrics">
         <div class="metric-card">
-            <div class="metric-icon" style="color: var(--ice-cyan);">⚡</div>
+            <div class="metric-icon" style="color: var(--accent);">⚡</div>
             <div>
                 <div class="metric-val"><?= count($myGigs) ?></div>
                 <div class="metric-lbl">Active Gigs</div>
@@ -123,7 +123,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div class="metric-card">
-            <div class="metric-icon" style="color: #fbbf24;">⏳</div>
+            <div class="metric-icon" style="color: #b45309; background: #fef3c7;">⏳</div>
             <div>
                 <div class="metric-val"><?= $pendingCount ?></div>
                 <div class="metric-lbl">Pending Requests</div>
@@ -131,7 +131,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div class="metric-card">
-            <div class="metric-icon" style="color: #34d399;">✨</div>
+            <div class="metric-icon" style="color: #15803d; background: #dcfce7;">✨</div>
             <div>
                 <div class="metric-val"><?= $acceptedCount ?></div>
                 <div class="metric-lbl">Accepted Projects</div>
@@ -139,7 +139,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div class="metric-card">
-            <div class="metric-icon" style="color: #818cf8;">💎</div>
+            <div class="metric-icon" style="color: var(--accent); background: var(--accent-soft);">💎</div>
             <div>
                 <div class="metric-val"><?= formatRate($totalRevenue) ?></div>
                 <div class="metric-lbl">Booked Volume</div>
@@ -148,15 +148,15 @@ require_once __DIR__ . '/includes/header.php';
     </section>
 
     <!-- SECTION 1: Creator Dashboard Bookings (Feature 4 & DP1) -->
-    <section style="margin-bottom: 4rem;" class="reveal stagger-2">
+    <section style="margin-bottom: 4rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <h2 class="section-title">Client Bookings Dashboard</h2>
-                <p class="text-muted">Review, accept, or decline client bookings on your gigs in real time.</p>
+                <p style="color: var(--ink-soft); font-size: 0.95rem;">Review, accept, or decline client bookings on your gigs in real time.</p>
             </div>
 
             <!-- Status Tabs -->
-            <div style="display: flex; gap: 0.5rem; background: var(--bg-surface); padding: 0.35rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <div style="display: flex; gap: 0.5rem; background: var(--paper-warm); padding: 0.35rem; border-radius: var(--radius-md); border: 1px solid var(--line);">
                 <a href="creator.php<?= $isCreator ? '?as_creator=' . $currentCreatorId : '' ?>" class="btn btn-sm <?= empty($statusFilter) ? 'btn-primary' : 'btn-secondary' ?>">
                     All (<?= count($allBookings) ?>)
                 </a>
@@ -173,25 +173,25 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <?php if (empty($creatorBookings)): ?>
-            <div class="glass-panel" style="padding: 3rem; text-align: center;">
+            <div class="glass-panel" style="padding: 3.5rem 2rem; text-align: center; border: 1px solid var(--line);">
                 <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📂</div>
-                <h4 style="color: #fff; margin-bottom: 0.25rem;">No bookings found</h4>
-                <p class="text-muted" style="font-size: 0.9rem;">
+                <h4 style="color: var(--ink); margin-bottom: 0.35rem; font-size: 1.25rem;">No bookings found</h4>
+                <p style="color: var(--ink-soft); font-size: 0.92rem;">
                     <?= !empty($statusFilter) ? "No bookings with status '{$statusFilter}'." : "You haven't received any bookings yet. Gigs posted will receive client inquiries here." ?>
                 </p>
             </div>
         <?php else: ?>
             <div>
                 <?php foreach ($creatorBookings as $b): ?>
-                    <div class="booking-item-card" id="booking-card-<?= $b['id'] ?>">
-                        <div class="booking-item-header">
+                    <div class="booking-item-card" id="booking-card-<?= $b['id'] ?>" style="background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                        <div class="booking-item-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
                             <div>
-                                <span class="text-muted" style="font-size: 0.8rem;">Booking #<?= $b['id'] ?> &bull; <?= date('M d, Y', strtotime($b['created_at'])) ?></span>
-                                <h3 style="font-size: 1.15rem; color: #fff; margin-top: 0.2rem;"><?= h($b['gig_title']) ?></h3>
+                                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">Booking #<?= $b['id'] ?> &bull; <?= date('M d, Y', strtotime($b['created_at'])) ?></span>
+                                <h3 style="font-size: 1.35rem; color: var(--ink); margin-top: 0.2rem;"><?= h($b['gig_title']) ?></h3>
                             </div>
 
                             <div style="display: flex; align-items: center; gap: 1rem;">
-                                <div style="font-family: var(--font-heading); font-weight: 700; font-size: 1.25rem; color: var(--ice-200);">
+                                <div style="font-family: var(--font-heading); font-weight: 700; font-size: 1.4rem; color: var(--accent);">
                                     <?= formatRate($b['rate']) ?>
                                 </div>
                                 <div class="status-badge-container">
@@ -203,25 +203,25 @@ require_once __DIR__ . '/includes/header.php';
                             </div>
                         </div>
 
-                        <div style="background: rgba(15, 23, 42, 0.5); padding: 1rem 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-bottom: 1.25rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.88rem;">
-                                <span>Client: <strong style="color: var(--ice-300);"><?= h($b['client_name']) ?></strong></span>
-                                <span class="text-muted">Target Delivery: <?= !empty($b['booked_date']) ? date('M d, Y', strtotime($b['booked_date'])) : 'Flexible' ?></span>
+                        <div style="background: var(--paper-warm); padding: 1.1rem 1.35rem; border-radius: var(--radius-md); border: 1px solid var(--line); margin-bottom: 1.25rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; flex-wrap: wrap; gap: 0.5rem;">
+                                <span style="color: var(--ink);">Client: <strong style="color: var(--ink);"><?= h($b['client_name']) ?></strong></span>
+                                <span style="color: var(--text-muted);">Target Delivery: <?= !empty($b['booked_date']) ? date('M d, Y', strtotime($b['booked_date'])) : 'Flexible' ?></span>
                             </div>
-                            <p style="font-size: 0.9rem; color: var(--text-primary); font-style: italic;">
+                            <p style="font-size: 0.93rem; color: var(--ink); line-height: 1.55;">
                                 "<?= h($b['message']) ?>"
                             </p>
 
                             <?php if ($b['status'] === 'Declined' && !empty($b['decline_reason'])): ?>
-                                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(244, 63, 94, 0.2); font-size: 0.85rem; color: #fda4af;">
+                                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #fed7aa; font-size: 0.88rem; color: #9a3412;">
                                     <strong>DP1 Rejection Reason provided:</strong> <?= h($b['decline_reason']) ?>
                                 </div>
                             <?php endif; ?>
                         </div>
 
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                            <span class="text-muted" style="font-size: 0.85rem;">
-                                Category: <strong style="color: #fff;"><?= h($b['category']) ?></strong>
+                            <span style="font-size: 0.88rem; color: var(--ink-soft);">
+                                Category: <strong style="color: var(--ink);"><?= h($b['category']) ?></strong>
                             </span>
 
                             <div class="booking-actions">
@@ -233,7 +233,7 @@ require_once __DIR__ . '/includes/header.php';
                                         <span>✕ Decline</span>
                                     </button>
                                 <?php else: ?>
-                                    <span class="text-muted" style="font-size: 0.85rem;">Status finalized: <?= h($b['status']) ?></span>
+                                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Status finalized: <?= h($b['status']) ?></span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -244,25 +244,25 @@ require_once __DIR__ . '/includes/header.php';
     </section>
 
     <!-- SECTION 2: Post a Gig Form (Feature 1) -->
-    <section id="post-gig-section" class="glass-panel reveal stagger-3" style="padding: 2.5rem; margin-bottom: 4rem;">
-        <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1.25rem;">
+    <section id="post-gig-section" class="glass-panel" style="padding: 2.5rem; margin-bottom: 4rem; border: 1px solid var(--line); background: var(--paper);">
+        <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--line); padding-bottom: 1.25rem;">
             <div class="hero-pill" style="margin-bottom: 0.5rem; font-size: 0.8rem;">Feature 1: Post a Gig</div>
             <h2 class="section-title">List a New Creator Gig</h2>
-            <p class="text-muted">Publish your expertise to the marketplace. Gig will be tied to your creator identity and immediately searchable.</p>
+            <p style="color: var(--ink-soft); font-size: 0.95rem;">Publish your expertise to the marketplace. Gig will be tied to your creator identity and immediately searchable.</p>
         </div>
 
         <?php if (!empty($_GET['posted'])): ?>
-            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 1rem 1.5rem; border-radius: var(--radius-md); margin-bottom: 2rem; color: #34d399;">
+            <div style="background: #edf7f0; border: 1px solid #b9d7c0; padding: 1rem 1.5rem; border-radius: var(--radius-md); margin-bottom: 2rem; color: var(--success); font-weight: 600;">
                 ✨ <strong>Success!</strong> Your gig has been posted and is now live on the marketplace.
             </div>
         <?php endif; ?>
 
         <?php if (!$isCreator): ?>
             <!-- Locked State for Clients -->
-            <div style="background: rgba(15, 23, 42, 0.75); border: 1px dashed var(--border-ice); border-radius: var(--radius-md); padding: 2.5rem 2rem; text-align: center;">
+            <div style="background: var(--paper-warm); border: 1px dashed var(--line); border-radius: var(--radius-md); padding: 2.5rem 2rem; text-align: center;">
                 <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔒</div>
-                <h3 style="color: #fff; font-size: 1.25rem; margin-bottom: 0.5rem;">Creator Identity Required to Post Gigs</h3>
-                <p class="text-muted" style="max-width: 540px; margin: 0 auto 1.5rem; font-size: 0.92rem; line-height: 1.6;">
+                <h3 style="color: var(--ink); font-size: 1.35rem; margin-bottom: 0.5rem;">Creator Identity Required to Post Gigs</h3>
+                <p style="max-width: 540px; margin: 0 auto 1.5rem; font-size: 0.95rem; color: var(--ink-soft); line-height: 1.6;">
                     You are currently viewing as Client <strong><?= h($activePersona['name']) ?></strong>. Gigs must be authored by a verified Creator. Switch identity to list a new service:
                 </p>
                 <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 0.75rem;">
