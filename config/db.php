@@ -43,29 +43,39 @@ $pdo = null;
 try {
     $pdo = new PDO($dsn, $dbUser, $dbPass, $options);
 } catch (PDOException $e) {
-    // In development or first-time setup, auto-create database if missing
-    if (!isProduction()) {
+    $errId = logAppError($e, 'database_connect');
+    
+    // In local development with root user, try auto-creating local database if it doesn't exist
+    if (!isProduction() && ($dbHost === '127.0.0.1' || $dbHost === 'localhost') && $dbUser === 'root') {
         try {
             $rootDsn = "mysql:host={$dbHost};port={$dbPort};charset=utf8mb4";
             $tempPdo = new PDO($rootDsn, $dbUser, $dbPass, $options);
             $tempPdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
             $pdo = new PDO($dsn, $dbUser, $dbPass, $options);
-        } catch (PDOException $ex) {
-            $errId = logAppError($ex, 'database_init');
+        } catch (Throwable $ex) {
             http_response_code(500);
             die(json_encode([
                 'status'   => 'error',
-                'message'  => 'Database connection failed. Please verify configuration.',
-                'error_id' => $errId
+                'message'  => 'Database connection failed: ' . $e->getMessage(),
+                'error_id' => $errId,
+                'host'     => $dbHost,
+                'database' => $dbName,
+                'user'     => $dbUser
             ]));
         }
     } else {
-        $errId = logAppError($e, 'database_connect');
         http_response_code(500);
+        $errMsg = 'Database connection failed: ' . $e->getMessage();
         die(json_encode([
             'status'   => 'error',
-            'message'  => 'Database service temporarily unavailable.',
-            'error_id' => $errId
+            'message'  => isProduction() ? 'Database service temporarily unavailable.' : $errMsg,
+            'error_id' => $errId,
+            'details'  => [
+                'host'     => $dbHost,
+                'database' => $dbName,
+                'user'     => $dbUser,
+                'error'    => $e->getMessage()
+            ]
         ]));
     }
 }
