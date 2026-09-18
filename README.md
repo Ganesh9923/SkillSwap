@@ -1,7 +1,7 @@
 # SkillSwap — Creator Gig Marketplace
 
 [![Hackathon ID](https://img.shields.io/badge/Hackathon%20ID-AZIS--SNTAGG-00f2fe?style=for-the-badge&logo=code)](https://github.com/Ganesh9923/SkillSwap)
-[![Track](https://img.shields.io/badge/Track%202-Real--World%20AI%20Products-6366f1?style=for-the-badge)](https://github.com/Ganesh9923/SkillSwap)
+[![Track](https://img.shields.io/badge/Track%202-Real--World%20Web%20Product-6366f1?style=for-the-badge)](https://github.com/Ganesh9923/SkillSwap)
 [![Team](https://img.shields.io/badge/Team-Om's%20team-10b981?style=for-the-badge)](https://github.com/Ganesh9923/SkillSwap)
 [![Stack](https://img.shields.io/badge/Stack-PHP%20%7C%20MySQL%20PDO%20%7C%20Vanilla%20HTML5%20CSS3%20JS-38bdf8?style=for-the-badge)](https://github.com/Ganesh9923/SkillSwap)
 
@@ -13,7 +13,7 @@
   - **Leader**: **Om Dipak Kanase** (*Pentesting, UI/UX and optimization*)
   - **Team Member 1**: **Ganesh Arun Dalave** (*Web Development and Functionalities*)
   - **Institution**: Lovely Professional University (LPU)
-- **Track**: Track 2 — Real-World AI Products (*SkillSwap Brief*)
+- **Track**: Track 2 — Real-World Web Product (*SkillSwap Brief*)
 - **Public GitHub Repository**: [https://github.com/Ganesh9923/SkillSwap](https://github.com/Ganesh9923/SkillSwap)
 - **Live Deployed URL**: [https://skillswap-production.vercel.app](https://skillswap-production.vercel.app) *(or local `http://127.0.0.1:8000` / `http://127.0.0.1:8088`)*
 - **Demo Video Walkthrough (3–4 min)**: [https://youtu.be/AZIS-SNTAGG-SkillSwap-Demo](https://youtu.be/AZIS-SNTAGG-SkillSwap-Demo) *(Walkthrough demonstrating all 5 features, DP1, DP2, and DP3)*
