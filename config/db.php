@@ -93,6 +93,15 @@ function ensureSkillSwapSchema(PDO $pdo): void {
                 $pdo->exec("ALTER TABLE `bookings` ADD COLUMN `payment_status` ENUM('Unpaid', 'Held_In_Escrow', 'Released_To_Creator', 'Refunded') NOT NULL DEFAULT 'Unpaid' AFTER `status`");
             }
 
+            // Check if company column exists in clients
+            $clientColCheck = $pdo->query("SHOW COLUMNS FROM `clients` LIKE 'company'");
+            if ($clientColCheck->rowCount() === 0) {
+                $pdo->exec("ALTER TABLE `clients` ADD COLUMN `company` VARCHAR(100) DEFAULT NULL AFTER `avatar`");
+                $pdo->exec("UPDATE `clients` SET `company` = 'VentureLab IO' WHERE `id` = 1");
+                $pdo->exec("UPDATE `clients` SET `company` = 'Aurora Studios' WHERE `id` = 2");
+                $pdo->exec("UPDATE `clients` SET `company` = 'HyperFlow Tech' WHERE `id` = 3");
+            }
+
             // Check if payments table exists
             $payCheck = $pdo->query("SHOW TABLES LIKE 'payments'");
             if ($payCheck->rowCount() === 0) {
