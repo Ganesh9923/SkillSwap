@@ -370,9 +370,12 @@ function getCreatorBookings(int $creatorId, ?string $status = null): array {
     $params = [':creator_id' => $creatorId];
     $statusFilter = '';
 
-    if (!empty($status) && in_array($status, ['Pending', 'Accepted', 'Declined'], true)) {
-        $statusFilter = "AND status = :status";
-        $params[':status'] = $status;
+    if (!empty($status)) {
+        $normalizedStatus = ucfirst(strtolower(trim($status)));
+        if (in_array($normalizedStatus, ['Pending', 'Accepted', 'Declined'], true)) {
+            $statusFilter = "AND status = :status";
+            $params[':status'] = $normalizedStatus;
+        }
     }
 
     $sql = "SELECT id, gig_id, gig_title, category, rate, creator_id, creator_name, client_name, message, status, payment_status, decline_reason, booked_date, created_at 
@@ -406,9 +409,12 @@ function getClientBookings(string $clientName, ?string $status = null): array {
     $params = [':client_name' => $clientName];
     $statusFilter = '';
 
-    if (!empty($status) && in_array($status, ['Pending', 'Accepted', 'Declined'], true)) {
-        $statusFilter = "AND b.status = :status";
-        $params[':status'] = $status;
+    if (!empty($status)) {
+        $normalizedStatus = ucfirst(strtolower(trim($status)));
+        if (in_array($normalizedStatus, ['Pending', 'Accepted', 'Declined'], true)) {
+            $statusFilter = "AND b.status = :status";
+            $params[':status'] = $normalizedStatus;
+        }
     }
 
     $sql = "SELECT b.id, b.gig_id, b.gig_title, b.category, b.rate, b.creator_id, b.creator_name, 

@@ -12,11 +12,13 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 // Count pending bookings for active creator or client to display dynamic badge
 $pendingBadgeCount = 0;
 if ($activePersona['type'] === 'creator') {
-    $creatorBookings = getCreatorBookings((int)$activePersona['id'], 'Pending');
-    $pendingBadgeCount = count($creatorBookings);
+    $_headerPendingBookings = getCreatorBookings((int)$activePersona['id'], 'Pending');
+    $pendingBadgeCount = count($_headerPendingBookings);
+    unset($_headerPendingBookings);
 } else {
-    $clientBookings = getClientBookings($activePersona['name'], 'Pending');
-    $pendingBadgeCount = count($clientBookings);
+    $_headerPendingClientBookings = getClientBookings($activePersona['name'], 'Pending');
+    $pendingBadgeCount = count($_headerPendingClientBookings);
+    unset($_headerPendingClientBookings);
 }
 ?>
 <!DOCTYPE html>

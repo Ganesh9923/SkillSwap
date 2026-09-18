@@ -157,16 +157,16 @@ require_once __DIR__ . '/includes/header.php';
 
             <!-- Status Tabs -->
             <div style="display: flex; gap: 0.5rem; background: var(--bg-surface); padding: 0.35rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-                <a href="creator.php" class="btn btn-sm <?= empty($statusFilter) ? 'btn-primary' : 'btn-secondary' ?>">
+                <a href="creator.php<?= $isCreator ? '?as_creator=' . $currentCreatorId : '' ?>" class="btn btn-sm <?= empty($statusFilter) ? 'btn-primary' : 'btn-secondary' ?>">
                     All (<?= count($allBookings) ?>)
                 </a>
-                <a href="creator.php?status=Pending" class="btn btn-sm <?= $statusFilter === 'Pending' ? 'btn-primary' : 'btn-secondary' ?>">
+                <a href="creator.php?<?= $isCreator ? 'as_creator=' . $currentCreatorId . '&' : '' ?>status=Pending" class="btn btn-sm <?= $statusFilter === 'Pending' ? 'btn-primary' : 'btn-secondary' ?>">
                     Pending (<?= $pendingCount ?>)
                 </a>
-                <a href="creator.php?status=Accepted" class="btn btn-sm <?= $statusFilter === 'Accepted' ? 'btn-primary' : 'btn-secondary' ?>">
+                <a href="creator.php?<?= $isCreator ? 'as_creator=' . $currentCreatorId . '&' : '' ?>status=Accepted" class="btn btn-sm <?= $statusFilter === 'Accepted' ? 'btn-primary' : 'btn-secondary' ?>">
                     Accepted (<?= $acceptedCount ?>)
                 </a>
-                <a href="creator.php?status=Declined" class="btn btn-sm <?= $statusFilter === 'Declined' ? 'btn-primary' : 'btn-secondary' ?>">
+                <a href="creator.php?<?= $isCreator ? 'as_creator=' . $currentCreatorId . '&' : '' ?>status=Declined" class="btn btn-sm <?= $statusFilter === 'Declined' ? 'btn-primary' : 'btn-secondary' ?>">
                     Declined (<?= $declinedCount ?>)
                 </a>
             </div>
