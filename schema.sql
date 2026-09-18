@@ -3,13 +3,8 @@
 -- Hackathon ID: AZIS-SNTAGG | Track 2: Real-World AI Products
 -- Team: Om's team (Om Dipak Kanase - Leader, Ganesh Arun Dalave - Team Member 1)
 -- Institution: Lovely Professional University (LPU)
+-- Compatible with local XAMPP MySQL, Hostinger (u440247131_skillswap), phpMyAdmin, and Cloud MySQL
 -- ====================================================================
-
-CREATE DATABASE IF NOT EXISTS `skillswap_db` 
-CHARACTER SET utf8mb4 
-COLLATE utf8mb4_unicode_ci;
-
-USE `skillswap_db`;
 
 -- ====================================================================
 -- 1. CREATORS TABLE (Demo Personas & DP3 Ranking Multipliers)
