@@ -122,7 +122,23 @@ function closeModal(modalId) {
 }
 
 /**
- * 4. Toast Notification Utility
+ * 4. Global Alert / Validation Modal Popup
+ */
+function showAlertPopup(title, message, icon = '⚠️') {
+    const modal = document.getElementById('alert-popup-modal');
+    const titleEl = document.getElementById('alert-popup-title');
+    const msgEl = document.getElementById('alert-popup-message');
+    const iconEl = document.getElementById('alert-popup-icon');
+
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.innerHTML = message;
+    if (iconEl) iconEl.textContent = icon;
+
+    openModal('alert-popup-modal');
+}
+
+/**
+ * 5. Toast Notification Utility
  */
 function showToast(message, type = 'info') {
     let container = document.getElementById('toast-container');
@@ -136,11 +152,12 @@ function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     
-    let icon = '❄️';
+    let icon = 'ℹ️';
     if (type === 'success') icon = '✨';
     if (type === 'error') icon = '⚠️';
+    if (type === 'warning') icon = '⏳';
 
-    toast.innerHTML = `<span>${icon}</span> <div>${message}</div>`;
+    toast.innerHTML = `<span style="font-size: 1.15rem; line-height: 1;">${icon}</span> <div style="flex:1;">${message}</div>`;
     container.appendChild(toast);
 
     setTimeout(() => {
@@ -148,5 +165,30 @@ function showToast(message, type = 'info') {
         toast.style.transform = 'translateX(100%)';
         toast.style.transition = 'all 0.3s ease';
         setTimeout(() => toast.remove(), 300);
-    }, 4000);
+    }, 4500);
 }
+
+// Auto-detect URL notifications on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('error')) {
+        const errorMsg = urlParams.get('error');
+        showAlertPopup('Validation Notice', errorMsg, '⚠️');
+        showToast(errorMsg, 'error');
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('error');
+        window.history.replaceState({}, '', cleanUrl.toString());
+    }
+    if (urlParams.has('posted')) {
+        showToast('✨ Gig published successfully to the marketplace!', 'success');
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('posted');
+        window.history.replaceState({}, '', cleanUrl.toString());
+    }
+    if (urlParams.has('booked')) {
+        showToast('✨ Booking submitted with status Pending!', 'success');
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('booked');
+        window.history.replaceState({}, '', cleanUrl.toString());
+    }
+});

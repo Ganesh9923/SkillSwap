@@ -44,7 +44,8 @@ if ($bookingId <= 0 || !in_array($status, ['Accepted', 'Declined', 'Pending'], t
         echo json_encode(['status' => 'error', 'message' => 'Invalid booking ID or target status.']);
         exit;
     }
-    die("Validation Error: Invalid parameters.");
+    header('Location: ../creator.php?error=' . urlencode("Validation Error: Invalid parameters."));
+    exit;
 }
 
 // Role Enforcement: Only Creators can update booking statuses
@@ -59,7 +60,8 @@ if ($activePersona['type'] !== 'creator') {
         ]);
         exit;
     }
-    die("Access Denied: Only Creators can accept or decline bookings.");
+    header('Location: ../creator.php?error=' . urlencode("Access Denied: Only Creators can accept or decline bookings."));
+    exit;
 }
 
 try {
@@ -94,7 +96,8 @@ try {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         exit;
     }
-    die("Capacity Limit: " . htmlspecialchars($e->getMessage()));
+    header('Location: ../creator.php?error=' . urlencode("Capacity Limit: " . $e->getMessage()));
+    exit;
 } catch (InvalidArgumentException $e) {
     if ($isAjax) {
         http_response_code(400);
@@ -102,7 +105,8 @@ try {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         exit;
     }
-    die("Validation Error: " . htmlspecialchars($e->getMessage()));
+    header('Location: ../creator.php?error=' . urlencode("Validation Error: " . $e->getMessage()));
+    exit;
 } catch (Exception $e) {
     $errId = logAppError($e, 'action_update_booking');
     if ($isAjax) {
@@ -111,5 +115,6 @@ try {
         echo json_encode(['status' => 'error', 'message' => 'Error updating booking status.', 'error_id' => $errId]);
         exit;
     }
-    die("Error updating booking status. Ref ID: " . htmlspecialchars($errId));
+    header('Location: ../creator.php?error=' . urlencode("Error updating booking status. (Ref ID: {$errId})"));
+    exit;
 }

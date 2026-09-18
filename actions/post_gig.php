@@ -51,7 +51,8 @@ if ($activePersona['type'] !== 'creator') {
         ]);
         exit;
     }
-    die("Access Denied: Only Creators can post gigs. Please switch to a Creator persona using the top switcher.");
+    header('Location: ../creator.php?error=' . urlencode("Access Denied: Only Creators can post gigs. Please switch to a Creator persona.") . '#post-gig-section');
+    exit;
 }
 
 $creatorId = (int)$activePersona['id'];
@@ -88,7 +89,8 @@ if (!empty($errors)) {
         echo json_encode(['status' => 'error', 'errors' => $errors, 'message' => implode(' ', $errors)]);
         exit;
     }
-    die("Validation Error: " . htmlspecialchars(implode('<br>', $errors)));
+    header('Location: ../creator.php?error=' . urlencode(implode(' ', $errors)) . '#post-gig-section');
+    exit;
 }
 
 try {
@@ -120,5 +122,6 @@ try {
         echo json_encode(['status' => 'error', 'message' => 'An error occurred while creating the gig.', 'error_id' => $errId]);
         exit;
     }
-    die("Error creating gig. Ref ID: " . htmlspecialchars($errId));
+    header('Location: ../creator.php?error=' . urlencode("Error creating gig. (Ref ID: {$errId})") . '#post-gig-section');
+    exit;
 }

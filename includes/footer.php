@@ -104,6 +104,21 @@
         </div>
     </div>
 
+    <!-- Global Alert / Validation Modal Popup -->
+    <div id="alert-popup-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 460px; text-align: center; padding: 2.2rem 1.8rem;">
+            <button class="modal-close-btn" data-modal-close aria-label="Close">&times;</button>
+            <div id="alert-popup-icon" style="font-size: 2.6rem; margin-bottom: 0.8rem;">⚠️</div>
+            <h3 id="alert-popup-title" style="font-size: 1.3rem; margin-bottom: 0.6rem; color: var(--ink);">Validation Error</h3>
+            <div id="alert-popup-message" style="color: var(--ink-soft); font-size: 0.92rem; line-height: 1.6; margin-bottom: 1.5rem; text-align: left; background: var(--paper-warm); padding: 0.9rem 1.1rem; border-radius: 8px; border: 1px solid var(--line);">
+                Please fix the indicated fields to proceed.
+            </div>
+            <button type="button" class="btn btn-primary" data-modal-close style="width: 100%;">
+                <span>Got it, let me fix it</span>
+            </button>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
 

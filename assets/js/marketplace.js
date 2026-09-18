@@ -6,6 +6,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initBookingModalTriggers();
     initBookingFormSubmit();
+    initPostGigFormSubmit();
     initCreatorDashboardActions();
     initCardSheenEffects();
     initLiveSearchFilter();
@@ -48,8 +49,19 @@ function initBookingFormSubmit() {
         e.preventDefault();
         const submitBtn = bookingForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
+
+        const clientNameInput = bookingForm.querySelector('[name="client_name"]');
+        const clientName = clientNameInput ? clientNameInput.value.trim() : '';
+
+        if (clientName.length < 2) {
+            showAlertPopup('Validation Error', 'Client name must be at least 2 characters.', '⚠️');
+            showToast('⚠️ Client name must be at least 2 characters.', 'error');
+            if (clientNameInput) clientNameInput.focus();
+            return;
+        }
+
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span>Booking...</span>';
+        submitBtn.innerHTML = '<span>Submitting booking...</span>';
 
         const formData = new FormData(bookingForm);
 
@@ -58,29 +70,123 @@ function initBookingFormSubmit() {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
 
             const result = await response.json();
 
-            if (result.status === 'success') {
+            if (response.ok && result.status === 'success') {
                 closeModal('booking-modal');
                 showToast(`✨ Booking Confirmed! Status: Pending for ${result.data.creator_name}`, 'success');
                 
-                // Show instant confirmation overlay or redirect to My Bookings
                 setTimeout(() => {
                     window.location.href = `my_bookings.php?client_name=${encodeURIComponent(formData.get('client_name'))}&booked=1`;
-                }, 900);
+                }, 800);
             } else {
-                showToast(result.message || 'Error processing booking', 'error');
+                const errMsg = result.message || 'Error processing booking request.';
+                showAlertPopup('Booking Notice', errMsg, '⚠️');
+                showToast('⚠️ ' + errMsg, 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
             }
         } catch (err) {
-            console.error(err);
-            // Fallback to standard form submit if JSON parse fails
-            bookingForm.submit();
+            console.error('Booking submission error:', err);
+            showAlertPopup('Error', 'An unexpected network error occurred. Please try again.', '⚠️');
+            showToast('⚠️ Network error. Please try again.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
+}
+
+/**
+ * 2b. Post a Gig Form Submission with Popup Validation (Feature 1)
+ */
+function initPostGigFormSubmit() {
+    const postGigForm = document.getElementById('post-gig-form');
+    if (!postGigForm) return;
+
+    postGigForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const titleInput = postGigForm.querySelector('[name="title"]');
+        const categoryInput = postGigForm.querySelector('[name="category"]');
+        const rateInput = postGigForm.querySelector('[name="rate"]');
+        const descInput = postGigForm.querySelector('[name="description"]');
+        const submitBtn = postGigForm.querySelector('button[type="submit"]');
+
+        const title = titleInput ? titleInput.value.trim() : '';
+        const category = categoryInput ? categoryInput.value : '';
+        const rate = rateInput ? parseFloat(rateInput.value) : 0;
+        const description = descInput ? descInput.value.trim() : '';
+
+        // Client-side instant validation
+        if (title.length < 3 || title.length > 150) {
+            showAlertPopup('Validation Error', 'Gig Title must be between 3 and 150 characters.', '⚠️');
+            showToast('⚠️ Gig Title must be between 3 and 150 characters.', 'error');
+            if (titleInput) titleInput.focus();
+            return;
+        }
+
+        if (!category) {
+            showAlertPopup('Validation Error', 'Please select a valid category from the dropdown.', '⚠️');
+            showToast('⚠️ Please select a category.', 'error');
+            if (categoryInput) categoryInput.focus();
+            return;
+        }
+
+        if (isNaN(rate) || rate <= 0 || rate > 50000) {
+            showAlertPopup('Validation Error', 'Rate must be a positive amount between $1.00 and $50,000.00.', '⚠️');
+            showToast('⚠️ Rate must be between $1.00 and $50,000.00.', 'error');
+            if (rateInput) rateInput.focus();
+            return;
+        }
+
+        if (description.length < 10 || description.length > 2000) {
+            showAlertPopup('Validation Error', `Description must be between 10 and 2000 characters.<br><br><small style="color:var(--text-muted);">Current character count: ${description.length} characters</small>`, '⚠️');
+            showToast('⚠️ Description must be between 10 and 2000 characters.', 'error');
+            if (descInput) descInput.focus();
+            return;
+        }
+
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Publishing gig...</span>';
+
+        const formData = new FormData(postGigForm);
+
+        try {
+            const response = await fetch('actions/post_gig.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.status === 'success') {
+                showToast('✨ Gig published successfully to the marketplace!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'creator.php?posted=1#my-gigs';
+                }, 700);
+            } else {
+                const errorMsg = result.message || (result.errors ? result.errors.join('<br>') : 'Error publishing gig.');
+                showAlertPopup('Validation Error', errorMsg, '⚠️');
+                showToast('⚠️ ' + errorMsg, 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        } catch (err) {
+            console.error('Post gig error:', err);
+            showAlertPopup('Submission Error', 'An error occurred while submitting. Please try again.', '⚠️');
+            showToast('⚠️ Submission error occurred.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
         }
     });
 }

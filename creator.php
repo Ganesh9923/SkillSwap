@@ -275,7 +275,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
             </div>
         <?php else: ?>
-            <form action="actions/post_gig.php" method="POST">
+            <form id="post-gig-form" action="actions/post_gig.php" method="POST">
                 <!-- Bot Protection Honeypot -->
                 <input type="text" name="website_hp" value="" style="display:none !important;" tabindex="-1" autocomplete="off">
                 <input type="hidden" name="creator_id" value="<?= $creatorData['id'] ?>">

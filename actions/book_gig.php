@@ -55,7 +55,8 @@ if (!$gig) {
         echo json_encode(['status' => 'error', 'message' => 'Gig not found.']);
         exit;
     }
-    die("Gig not found.");
+    header('Location: ../index.php?error=' . urlencode("Gig not found."));
+    exit;
 }
 
 if ($activePersona['type'] === 'creator' && (int)$gig['creator_id'] === (int)$activePersona['id']) {
@@ -68,7 +69,8 @@ if ($activePersona['type'] === 'creator' && (int)$gig['creator_id'] === (int)$ac
         ]);
         exit;
     }
-    die("Error: You cannot book your own gig.");
+    header('Location: ../creator.php?error=' . urlencode("You cannot book your own gig! Manage it from your Creator Hub."));
+    exit;
 }
 
 try {
@@ -98,5 +100,6 @@ try {
         echo json_encode(['status' => 'error', 'message' => 'An error occurred while creating booking.', 'error_id' => $errId]);
         exit;
     }
-    die("Error creating booking. Ref ID: " . htmlspecialchars($errId));
+    header('Location: ../index.php?error=' . urlencode("Error creating booking. (Ref ID: {$errId})"));
+    exit;
 }
