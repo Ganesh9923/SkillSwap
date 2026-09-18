@@ -118,6 +118,8 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
 
                 <form id="checkout-form" method="POST" action="actions/process_payment.php">
+                    <!-- Bot Protection Honeypot -->
+                    <input type="text" name="website_hp" value="" style="display:none !important;" tabindex="-1" autocomplete="off">
                     <input type="hidden" name="booking_id" value="<?= $booking ? $booking['id'] : '' ?>">
                     <input type="hidden" name="gig_id" value="<?= $gig['id'] ?>">
                     <input type="hidden" id="payment-method-input" name="payment_method" value="card">
@@ -155,38 +157,29 @@ require_once __DIR__ . '/includes/header.php';
                 </form>
             </div>
 
-                <!-- UPI FORM (Initially hidden) -->
-                <div id="section-upi" style="display: none; text-align: center; padding: 1.5rem 0;">
-                    <div style="background: #fff; padding: 1.25rem; display: inline-block; border-radius: var(--radius-md); box-shadow: 0 0 25px rgba(0, 242, 254, 0.3); margin-bottom: 1rem;">
-                        <!-- Clean Dynamic SVG QR Code Simulation -->
-                        <svg width="160" height="160" viewBox="0 0 24 24" fill="none" stroke="#050813" stroke-width="2">
-                            <rect x="3" y="3" width="7" height="7" rx="1" fill="#050813"/>
-                            <rect x="14" y="3" width="7" height="7" rx="1" fill="#050813"/>
-                            <rect x="3" y="14" width="7" height="7" rx="1" fill="#050813"/>
-                            <circle cx="17.5" cy="17.5" r="2.5" fill="#050813"/>
-                            <path d="M14 14h3v3h-3z"/>
-                        </svg>
-                    </div>
-                    <div style="font-size: 0.9rem; color: #fff; font-weight: 600;">Scan QR with Any UPI App</div>
-                    <div class="text-muted" style="font-size: 0.82rem; margin-top: 0.25rem;">UPI ID: <code>skillswap.escrow@icici</code></div>
-                </div>
+            <!-- ESCROW VAULT FORM -->
+            <div id="section-escrow" style="display: none; padding: 1rem 0;">
+                <form id="escrow-form" method="POST" action="actions/process_payment.php">
+                    <!-- Bot Protection Honeypot -->
+                    <input type="text" name="website_hp" value="" style="display:none !important;" tabindex="-1" autocomplete="off">
+                    <input type="hidden" name="booking_id" value="<?= $booking ? $booking['id'] : '' ?>">
+                    <input type="hidden" name="gig_id" value="<?= $gig['id'] ?>">
+                    <input type="hidden" name="payment_method" value="escrow">
 
-                <!-- ESCROW VAULT FORM -->
-                <div id="section-escrow" style="display: none; padding: 1rem 0;">
                     <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
                         <div style="font-weight: 700; color: #34d399; margin-bottom: 0.25rem;">🛡️ Verified Escrow Protection</div>
                         <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
                             Funds are transferred into an encrypted cryptographic vault. Payment is automatically refunded if creator declines in DP1, and only released when you approve completed work.
                         </p>
                     </div>
-                </div>
 
-                <div style="margin-top: 1.75rem;">
-                    <button type="submit" id="btn-pay-now" class="btn btn-primary btn-lg" style="width: 100%;">
-                        <span>🔒 Pay <?= formatRate($amount) ?> & Secure Escrow</span>
-                    </button>
-                </div>
-            </form>
+                    <div style="margin-top: 1.75rem;">
+                        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                            <span>🔒 Pay <?= formatRate($amount) ?> & Secure Escrow</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
 
             <div style="margin-top: 1.5rem; text-align: center; font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 1rem;">
                 <span>🔒 256-bit SSL Encrypted</span>

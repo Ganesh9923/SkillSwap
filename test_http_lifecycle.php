@@ -4,6 +4,9 @@
  * Simulates external browser / grading script making real HTTP requests against the live server.
  */
 
+require_once __DIR__ . '/includes/security.php';
+guardRestrictedEndpoint('HTTP Lifecycle Tester');
+
 $baseUrl = "http://127.0.0.1:8088";
 
 function httpPost(string $url, array $data): array {

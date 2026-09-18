@@ -1,0 +1,43 @@
+# ===================================================================
+# SkillSwap - Apache Security & Access Lockdown Configuration
+# Hackathon ID: AZIS-SNTAGG | Track 2: Real-World AI Products
+# ===================================================================
+
+Options -Indexes -MultiViews
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# 1. Block access to all dotfiles and hidden directories (.git, .env, .gitignore, etc.)
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 2. Block access to sensitive extensions, schemas, logs, and config files
+<FilesMatch "(^#.*#|\.(bak|conf|dist|fla|in[ci]|log|psd|sh|sql|sw[op]|tpl|env|git.*))$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 3. Strict URL Rewrite Blocking
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^\.git(/.*)?$ - [F,L,NC]
+    RewriteRule ^\.env.*$ - [F,L,NC]
+    RewriteRule ^config(/.*)?$ - [F,L,NC]
+    RewriteRule ^logs(/.*)?$ - [F,L,NC]
+    RewriteRule ^schema\.sql$ - [F,L,NC]
+    RewriteRule ^api/(seed|payments)\.php$ - [F,L,NC]
+    RewriteRule ^(setup|test_suite|test_http_lifecycle|verify_endpoints)\.php$ - [F,L,NC]
+</IfModule>
+
+# 4. Hide PHP version header & disable error display in web requests
+<IfModule mod_php.c>
+    php_flag expose_php Off
+    php_flag display_errors Off
+</IfModule>

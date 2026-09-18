@@ -17,6 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+if (!checkRateLimit('razorpay_order', 20, 300)) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'message' => 'Rate limit exceeded. Please wait a moment.']);
+    exit;
+}
+
 $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 $bookingId = (int)($input['booking_id'] ?? 0);
 $gigId = (int)($input['gig_id'] ?? 0);
@@ -26,7 +32,7 @@ $amount = 0.0;
 $title = "SkillSwap Service";
 
 if ($bookingId > 0) {
-    $stmt = $pdo->prepare("SELECT * FROM bookings WHERE id = :id");
+    $stmt = $pdo->prepare("SELECT id, gig_title, rate FROM bookings WHERE id = :id");
     $stmt->execute([':id' => $bookingId]);
     $booking = $stmt->fetch();
     if (!$booking) {

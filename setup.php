@@ -8,6 +8,8 @@
 
 require_once __DIR__ . '/includes/functions.php';
 
+guardRestrictedEndpoint('Setup & Diagnostics Portal');
+
 $pageTitle = "System Diagnostics & Setup";
 $pdo = getDB();
 

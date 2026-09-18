@@ -177,11 +177,11 @@ require_once __DIR__ . '/includes/header.php';
                                 </div>
 
                                 <!-- DP2 Concurrency Slot Badge -->
-                                <div class="capacity-badge <?= $gig['is_full'] ? 'full' : '' ?>" title="DP2 Capacity: <?= $gig['active_accepted_bookings'] ?> active accepted projects">
+                                <div class="capacity-badge <?= $gig['is_full'] ? 'full' : '' ?>" title="DP2 Capacity: <?= $gig['active_accepted_bookings'] ?> active accepted projects of <?= (int)$gig['max_concurrent_slots'] ?> max">
                                     <?php if ($gig['is_full']): ?>
-                                        <span>⚠️ Full</span>
+                                        <span>⚠️ Full (Waitlist)</span>
                                     <?php else: ?>
-                                        <span>🟢 <?= $gig['remaining_slots'] ?> slots</span>
+                                        <span>🟢 <?= $gig['remaining_slots'] ?> slots open</span>
                                     <?php endif; ?>
                                 </div>
                             </div>

@@ -1,6 +1,8 @@
 .env
 *.log
+logs/
 vendor/
 node_modules/
 .vercel/
 .system_generated/
+

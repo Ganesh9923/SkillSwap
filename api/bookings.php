@@ -26,21 +26,23 @@ require_once __DIR__ . '/../includes/functions.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// GET Bookings
+// GET Bookings (requires client_name or creator_id)
 if ($method === 'GET') {
-    $clientName = $_GET['client_name'] ?? null;
+    $clientName = isset($_GET['client_name']) ? trim((string)$_GET['client_name']) : null;
     $creatorId = isset($_GET['creator_id']) ? (int)$_GET['creator_id'] : null;
-    $status = $_GET['status'] ?? null;
+    $status = isset($_GET['status']) ? trim((string)$_GET['status']) : null;
 
     if (!empty($clientName)) {
         $bookings = getClientBookings($clientName, $status);
     } elseif (!empty($creatorId)) {
         $bookings = getCreatorBookings($creatorId, $status);
     } else {
-        // Return recent bookings across the platform for inspection
-        $pdo = getDB();
-        $stmt = $pdo->query("SELECT * FROM bookings ORDER BY id DESC LIMIT 50");
-        $bookings = $stmt->fetchAll();
+        http_response_code(400);
+        echo json_encode([
+            'status'  => 'error',
+            'message' => 'client_name or creator_id query parameter is required to retrieve bookings.'
+        ]);
+        exit;
     }
 
     echo json_encode([
@@ -53,13 +55,19 @@ if ($method === 'GET') {
 
 // POST: Create Booking or Update Status
 if ($method === 'POST') {
+    if (!checkRateLimit('api_bookings_post', 40, 300)) {
+        http_response_code(429);
+        echo json_encode(['status' => 'error', 'message' => 'API rate limit exceeded']);
+        exit;
+    }
+
     $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
     $action = $input['action'] ?? 'create';
 
-    if ($action === 'update_status' || isset($input['status']) && !isset($input['gig_id'])) {
+    if ($action === 'update_status' || (isset($input['status']) && !isset($input['gig_id']))) {
         $bookingId = (int)($input['booking_id'] ?? 0);
-        $status = trim($input['status'] ?? '');
-        $declineReason = trim($input['decline_reason'] ?? '');
+        $status = trim((string)($input['status'] ?? ''));
+        $declineReason = mb_substr(trim((string)($input['decline_reason'] ?? '')), 0, 255);
 
         if ($bookingId <= 0 || !in_array($status, ['Accepted', 'Declined', 'Pending'], true)) {
             http_response_code(400);
@@ -67,24 +75,36 @@ if ($method === 'POST') {
             exit;
         }
 
-        updateBookingStatus($bookingId, $status, $declineReason ?: null);
-        echo json_encode([
-            'status'  => 'success',
-            'message' => "Booking #{$bookingId} updated to {$status}",
-            'data'    => ['booking_id' => $bookingId, 'status' => $status, 'decline_reason' => $declineReason]
-        ], JSON_PRETTY_PRINT);
-        exit;
+        try {
+            updateBookingStatus($bookingId, $status, $declineReason ?: null);
+            echo json_encode([
+                'status'  => 'success',
+                'message' => "Booking #{$bookingId} updated to {$status}",
+                'data'    => ['booking_id' => $bookingId, 'status' => $status, 'decline_reason' => $declineReason]
+            ], JSON_PRETTY_PRINT);
+            exit;
+        } catch (RuntimeException $e) {
+            http_response_code(409);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage(), 'booking_id' => $bookingId, 'current_status' => 'Pending']);
+            exit;
+        } catch (Exception $e) {
+            $errId = logAppError($e, 'api_update_booking_status');
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage(), 'error_id' => $errId]);
+            exit;
+        }
     }
 
     // Default POST: Create Booking
     $gigId = (int)($input['gig_id'] ?? 0);
-    $clientName = trim($input['client_name'] ?? '');
-    $message = trim($input['message'] ?? '');
-    $bookedDate = trim($input['booked_date'] ?? '');
+    $rawClient = trim((string)($input['client_name'] ?? ''));
+    $clientName = preg_replace('/[^\p{L}\p{N}\s\.\-\'\@]/u', '', substr($rawClient, 0, 100));
+    $message = mb_substr(trim((string)($input['message'] ?? '')), 0, 1000);
+    $bookedDate = trim((string)($input['booked_date'] ?? ''));
 
-    if ($gigId <= 0 || empty($clientName)) {
+    if ($gigId <= 0 || mb_strlen($clientName) < 2) {
         http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'gig_id and client_name are required']);
+        echo json_encode(['status' => 'error', 'message' => 'gig_id and valid client_name (2+ chars) are required']);
         exit;
     }
 
@@ -98,8 +118,9 @@ if ($method === 'POST') {
         ], JSON_PRETTY_PRINT);
         exit;
     } catch (Exception $e) {
+        $errId = logAppError($e, 'api_book_gig');
         http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage(), 'error_id' => $errId]);
         exit;
     }
 }
@@ -108,8 +129,8 @@ if ($method === 'POST') {
 if ($method === 'PATCH') {
     $input = json_decode(file_get_contents('php://input'), true) ?? [];
     $bookingId = (int)($input['booking_id'] ?? 0);
-    $status = trim($input['status'] ?? '');
-    $declineReason = trim($input['decline_reason'] ?? '');
+    $status = trim((string)($input['status'] ?? ''));
+    $declineReason = mb_substr(trim((string)($input['decline_reason'] ?? '')), 0, 255);
 
     if ($bookingId <= 0 || !in_array($status, ['Accepted', 'Declined', 'Pending'], true)) {
         http_response_code(400);
@@ -117,13 +138,24 @@ if ($method === 'PATCH') {
         exit;
     }
 
-    updateBookingStatus($bookingId, $status, $declineReason ?: null);
-    echo json_encode([
-        'status'  => 'success',
-        'message' => "Booking #{$bookingId} status updated to {$status}",
-        'data'    => ['booking_id' => $bookingId, 'status' => $status, 'decline_reason' => $declineReason]
-    ], JSON_PRETTY_PRINT);
-    exit;
+    try {
+        updateBookingStatus($bookingId, $status, $declineReason ?: null);
+        echo json_encode([
+            'status'  => 'success',
+            'message' => "Booking #{$bookingId} status updated to {$status}",
+            'data'    => ['booking_id' => $bookingId, 'status' => $status, 'decline_reason' => $declineReason]
+        ], JSON_PRETTY_PRINT);
+        exit;
+    } catch (RuntimeException $e) {
+        http_response_code(409);
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage(), 'booking_id' => $bookingId, 'current_status' => 'Pending']);
+        exit;
+    } catch (Exception $e) {
+        $errId = logAppError($e, 'api_patch_booking_status');
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage(), 'error_id' => $errId]);
+        exit;
+    }
 }
 
 http_response_code(405);

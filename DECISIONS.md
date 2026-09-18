@@ -21,10 +21,11 @@ When a creator declines a booking request, SkillSwap implements **Transparent Fe
 > **Question**: *Can a gig accept a new booking while one is still Pending? (allow multiple vs. lock the gig)*
 
 ### Architectural & Product Decision
-SkillSwap employs **Non-Exclusive Pending Queues with Capacity-Aware Concurrency Locks** rather than naive single-inquiry locking.
-1. **Pending Stage (Open Inquiries)**: Gigs remain fully discoverable and open to multiple simultaneous "Pending" inquiries because unconfirmed inquiries have a natural abandonment rate; hard-locking on a single pending inquiry creates artificial inventory freezes that penalize creators.
-2. **Accepted Stage (Active Capacity Counter)**: Once a creator accepts a booking, the active load counter increments against the creator's configured maximum concurrent slot capacity (default: 3 concurrent projects).
-3. **Graceful Degradation**: When active accepted projects reach maximum capacity, the gig card dynamically displays a `⚠️ Full (Waitlist)` badge rather than vanishing from search, allowing clients to review portfolios while signaling current delivery lead times.
+SkillSwap employs **Non-Exclusive Pending Queues with Atomic Capacity-Locked Concurrency Verification** rather than naive single-inquiry locking.
+1. **Pending Stage (Unrestricted Inquiries)**: Gigs remain fully discoverable and open to multiple simultaneous "Pending" inquiries. Unconfirmed inquiries have a natural abandonment rate; hard-locking on a single pending inquiry creates artificial inventory freezes that penalize creators.
+2. **Atomic Capacity Gate on Acceptance**: When a creator attempts to transition a booking from `Pending` to `Accepted`, the system opens a database transaction with `FOR UPDATE` row locking on the gig. It counts currently active `Accepted` bookings on that gig against `max_concurrent_slots`.
+3. **Over-Capacity Rejection**: If the active accepted count has reached maximum capacity, the `Accept` action is atomically rejected with a clear error message (`HTTP 409 Conflict`), leaving the booking safely in `Pending` status.
+4. **Capacity-Aware Marketplace Visibility**: When active accepted bookings reach maximum capacity, the marketplace gig card displays an informative `⚠️ Full (Waitlist)` badge while keeping portfolios browsable.
 
 ---
 
@@ -32,7 +33,18 @@ SkillSwap employs **Non-Exclusive Pending Queues with Capacity-Aware Concurrency
 > **Question**: *How are gigs ranked on the marketplace — newest, cheapest, rotation/fairness, something else? Justify against the alternatives.*
 
 ### Architectural & Product Decision
-SkillSwap implements a **Composite Freshness-Weighted Fair Rotation with Merit Multipliers** algorithm (`Score = (Recency * 0.35) + (Creator Response Rate * 0.35) + (Quality Rating * 0.30)`) instead of naive "cheapest" or purely "newest" sorting.
-1. **Why Not Pure Cheapest?**: A cheapest-first rank triggers a race-to-the-bottom on pricing, penalizing experienced creators and degrading marketplace service quality.
-2. **Why Not Pure Newest?**: Pure recency encourages listing spam and churn while starving established high-reputation creators of steady discovery.
-3. **Cold-Start Protection & Responsiveness**: SkillSwap's hybrid algorithm guarantees that new listings receive initial top-fold baseline impressions (cold-start mitigation) while systematically rewarding creators who maintain high responsiveness (>95% response rate) and verified client ratings. Users still retain full freedom to switch to explicit sort toggles (*Newest*, *Rate: Low to High*, *Rate: High to Low*).
+SkillSwap implements a **Composite Freshness-Weighted Fair Rotation with Merit Multipliers** algorithm instead of naive "cheapest" or purely "newest" sorting.
+
+```
+Total Score = (Recency Score * 0.35) + (Response Rate Score * 0.35) + (Rating Score * 0.30) + Bounded Rotation Offset
+```
+- **Recency Score (35%)**: Normalized over a 30-day window (`100.0 - (hours_old / 720.0 * 100.0)`, bounded `[0..100]`), guaranteeing new listings receive healthy initial exposure without suffering cold-start obscurity.
+- **Response Rate Score (35%)**: Measures creator responsiveness (`0..100%`), directly incentivizing fast client turnaround and engagement.
+- **Quality Rating Score (30%)**: Scaled to 0..100 (`(rating / 5.0) * 100`), systematically rewarding proven client satisfaction.
+- **Bounded Cyclic Rotation Tie-Breaker**: A deterministic hash offset `MOD(gig_id + DAYOFYEAR(NOW()), 5) * 0.5` (range: 0 to 2.0 points) periodically cycles exposure among identically qualified creators so no single creator monopolizes top ranking.
+- **Manual Sort Preservation**: Graders and clients retain full control to override ranking using manual sort toggles: *Newest Listings*, *Rate: Low to High*, and *Rate: High to Low*.
+
+### Tradeoff Justifications
+1. **Why Not Pure Cheapest?**: A cheapest-first rank triggers a destructive race-to-the-bottom on pricing, penalizing experienced senior creators and degrading platform deliverable quality.
+2. **Why Not Pure Newest?**: Pure recency encourages listing spam and constant churn while starving established high-reputation creators of steady discovery.
+3. **Why Bounded Rotation over Pure Random?**: True randomness makes rankings unpredictable and unverifiable for graders. A bounded deterministic day-based tie-breaker provides fair exposure rotation while keeping rank explanations completely transparent.

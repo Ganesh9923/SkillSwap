@@ -3,7 +3,7 @@
  * SkillSwap - Action Handler: Post a Gig
  * Hackathon ID: AZIS-SNTAGG | Track 2: Real-World AI Products
  * 
- * Strict PDO Prepared Statements, Validation of Fixed Categories
+ * Strict PDO Prepared Statements, Honeypot & Rate Limiting, Persona Derivation
  */
 
 declare(strict_types=1);
@@ -16,6 +16,7 @@ $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTT
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     if ($isAjax) {
         http_response_code(405);
+        header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['status' => 'error', 'message' => 'Method Not Allowed']);
         exit;
     }
@@ -23,36 +24,65 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$creatorId = (int)($_POST['creator_id'] ?? 1);
-$creatorName = trim($_POST['creator_name'] ?? 'Elena Rostova');
-$title = trim($_POST['title'] ?? '');
-$category = trim($_POST['category'] ?? '');
+// 1. Honeypot check
+if (!validateHoneypot()) {
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Spam verification failed']);
+    exit;
+}
+
+// 2. Rate limiting (max 20 per 5 min)
+if (!checkRateLimit('post_gig', 20, 300)) {
+    http_response_code(429);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['status' => 'error', 'message' => 'Rate limit exceeded. Please wait a few moments before posting again.']);
+    exit;
+}
+
+// 3. Derive creator identity from active demo persona session
+$activePersona = getActivePersona();
+$creatorId = ($activePersona['type'] === 'creator') ? (int)$activePersona['id'] : 1;
+if (!isset(DEMO_CREATORS[$creatorId])) {
+    $creatorId = 1;
+}
+$creatorName = DEMO_CREATORS[$creatorId]['name'];
+
+$title = trim((string)($_POST['title'] ?? ''));
+$category = trim((string)($_POST['category'] ?? ''));
 $rate = (float)($_POST['rate'] ?? 0.0);
-$description = trim($_POST['description'] ?? '');
+$description = trim((string)($_POST['description'] ?? ''));
 $maxSlots = (int)($_POST['max_slots'] ?? 3);
 
-// Validation
+// 4. Strict Validation
 $errors = [];
-if (empty($title)) $errors[] = "Title is required.";
+if (mb_strlen($title) < 3 || mb_strlen($title) > 150) {
+    $errors[] = "Title must be between 3 and 150 characters.";
+}
 if (!in_array($category, ALLOWED_CATEGORIES, true)) {
     $errors[] = "Invalid category. Must be one of: " . implode(', ', ALLOWED_CATEGORIES);
 }
-if ($rate <= 0) $errors[] = "Rate must be greater than zero.";
-if (empty($description)) $errors[] = "Description is required.";
+if ($rate <= 0 || $rate > 50000) {
+    $errors[] = "Rate must be between $1.00 and $50,000.00.";
+}
+if (mb_strlen($description) < 10 || mb_strlen($description) > 2000) {
+    $errors[] = "Description must be between 10 and 2000 characters.";
+}
 
 if (!empty($errors)) {
     if ($isAjax) {
         http_response_code(400);
-        echo json_encode(['status' => 'error', 'errors' => $errors]);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['status' => 'error', 'errors' => $errors, 'message' => implode(' ', $errors)]);
         exit;
     }
-    die("Validation Error: " . implode('<br>', $errors));
+    die("Validation Error: " . htmlspecialchars(implode('<br>', $errors)));
 }
 
 try {
     $gigId = createGig($creatorId, $creatorName, $title, $category, $rate, $description, $maxSlots);
 
     if ($isAjax) {
+        header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
             'status'  => 'success',
             'message' => 'Gig published successfully!',
@@ -70,10 +100,12 @@ try {
     header('Location: ../creator.php?posted=1#my-gigs');
     exit;
 } catch (Exception $e) {
+    $errId = logAppError($e, 'action_post_gig');
     if ($isAjax) {
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['status' => 'error', 'message' => 'An error occurred while creating the gig.', 'error_id' => $errId]);
         exit;
     }
-    die("Error creating gig: " . $e->getMessage());
+    die("Error creating gig. Ref ID: " . htmlspecialchars($errId));
 }

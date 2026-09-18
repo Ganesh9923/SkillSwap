@@ -220,6 +220,8 @@ require_once __DIR__ . '/includes/header.php';
         <?php endif; ?>
 
         <form action="actions/post_gig.php" method="POST">
+            <!-- Bot Protection Honeypot -->
+            <input type="text" name="website_hp" value="" style="display:none !important;" tabindex="-1" autocomplete="off">
             <input type="hidden" name="creator_id" value="<?= $creatorData['id'] ?>">
             <input type="hidden" name="creator_name" value="<?= h($creatorData['name']) ?>">
 

@@ -21,6 +21,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+if (!checkRateLimit('razorpay_verify', 20, 300)) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'message' => 'Rate limit exceeded. Please wait a moment.']);
+    exit;
+}
+
 $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
 $orderId = trim((string)($input['razorpay_order_id'] ?? ''));
@@ -28,7 +34,7 @@ $paymentId = trim((string)($input['razorpay_payment_id'] ?? ''));
 $signature = trim((string)($input['razorpay_signature'] ?? ''));
 $bookingId = (int)($input['booking_id'] ?? 0);
 $gigId = (int)($input['gig_id'] ?? 0);
-$clientEmail = trim((string)($input['client_email'] ?? 'support@dalavix.com'));
+$clientEmail = filter_var(trim((string)($input['client_email'] ?? '')), FILTER_VALIDATE_EMAIL) ?: 'support@dalavix.com';
 
 if (empty($orderId) || empty($paymentId) || empty($signature)) {
     http_response_code(400);
@@ -69,37 +75,47 @@ if (!$booking) {
 
 $amount = (float)$booking['rate'];
 
-// Insert into payments table
-$paySql = "INSERT INTO payments (booking_id, gig_id, client_name, creator_id, creator_name, amount, currency, gateway, transaction_id, payment_method, status, created_at)
-           VALUES (:booking_id, :gig_id, :client_name, :creator_id, :creator_name, :amount, 'INR', 'Razorpay Live', :txn_id, 'UPI / Card / Netbanking (Razorpay)', 'Held_In_Escrow', NOW())";
+$pdo->beginTransaction();
 
-$payStmt = $pdo->prepare($paySql);
-$payStmt->execute([
-    ':booking_id'   => $booking['id'],
-    ':gig_id'       => $booking['gig_id'],
-    ':client_name'  => $booking['client_name'],
-    ':creator_id'   => $booking['creator_id'],
-    ':creator_name' => $booking['creator_name'],
-    ':amount'       => $amount,
-    ':txn_id'       => $paymentId
-]);
+try {
+    // Insert into payments table
+    $paySql = "INSERT INTO payments (booking_id, gig_id, client_name, creator_id, creator_name, amount, currency, gateway, transaction_id, payment_method, status, created_at)
+               VALUES (:booking_id, :gig_id, :client_name, :creator_id, :creator_name, :amount, 'INR', 'Razorpay Gateway', :txn_id, 'UPI / Card (Razorpay Escrow)', 'Held_In_Escrow', NOW())";
 
-$paymentIdDb = (int)$pdo->lastInsertId();
+    $payStmt = $pdo->prepare($paySql);
+    $payStmt->execute([
+        ':booking_id'   => $booking['id'],
+        ':gig_id'       => $booking['gig_id'],
+        ':client_name'  => $booking['client_name'],
+        ':creator_id'   => $booking['creator_id'],
+        ':creator_name' => $booking['creator_name'],
+        ':amount'       => $amount,
+        ':txn_id'       => substr($paymentId, 0, 100)
+    ]);
 
-// Update booking status
-$updStmt = $pdo->prepare("UPDATE bookings SET payment_status = 'Held_In_Escrow', updated_at = NOW() WHERE id = :id");
-$updStmt->execute([':id' => $booking['id']]);
+    // Update booking status
+    $updStmt = $pdo->prepare("UPDATE bookings SET payment_status = 'Held_In_Escrow', updated_at = NOW() WHERE id = :id");
+    $updStmt->execute([':id' => $booking['id']]);
 
-// Send automated confirmation email via Hostinger SMTP
+    $pdo->commit();
+} catch (Exception $e) {
+    $pdo->rollBack();
+    $errId = logAppError($e, 'razorpay_verify_db');
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Database error recording payment', 'error_id' => $errId]);
+    exit;
+}
+
+// Send automated confirmation email via Hostinger SMTP or safe simulation
 try {
     $paymentRecord = [
         'amount'         => $amount,
         'transaction_id' => $paymentId,
-        'gateway'        => 'Razorpay Live Gateway'
+        'gateway'        => 'Razorpay Escrow Vault'
     ];
     sendPaymentConfirmationEmail($clientEmail, $booking['client_name'], $booking, $paymentRecord);
 } catch (Exception $e) {
-    // Silently continue if mail delivery has network hiccups
+    logAppError($e, 'razorpay_verify_mail');
 }
 
 echo json_encode([

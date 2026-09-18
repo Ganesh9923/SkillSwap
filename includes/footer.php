@@ -18,6 +18,8 @@
             </div>
 
             <form id="booking-form" method="POST" action="actions/book_gig.php">
+                <!-- Bot Protection Honeypot -->
+                <input type="text" name="website_hp" value="" style="display:none !important;" tabindex="-1" autocomplete="off">
                 <input type="hidden" id="modal-gig-id" name="gig_id" value="">
 
                 <div class="form-group">

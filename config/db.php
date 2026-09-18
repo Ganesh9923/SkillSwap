@@ -1,14 +1,16 @@
 <?php
 /**
- * SkillSwap - Database Connection & Auto-Bootstrapper
- * Hackathon ID: AZIS-SNTAGG
- * Track 2: Real-World AI Products
+ * SkillSwap - Database Connection & Self-Healing Bootstrapper
+ * Hackathon ID: AZIS-SNTAGG | Track 2: Real-World AI Products
  * 
  * Uses PDO with Prepared Statements exclusively (Zero SQL Injection Risk).
- * Includes self-healing auto-initialization for zero-config grading deployment.
+ * Suppresses internal exception disclosures in production.
  */
 
 declare(strict_types=1);
+
+require_once __DIR__ . '/env.php';
+require_once __DIR__ . '/../includes/security.php';
 
 // Database configuration with environment variable & connection string support for cloud deployment
 $dbUrl = getenv('DATABASE_URL') ?: getenv('MYSQL_URL') ?: getenv('JAWSDB_URL');
@@ -41,16 +43,29 @@ $pdo = null;
 try {
     $pdo = new PDO($dsn, $dbUser, $dbPass, $options);
 } catch (PDOException $e) {
-    // If database doesn't exist yet, connect without dbname and create it automatically
-    try {
-        $rootDsn = "mysql:host={$dbHost};port={$dbPort};charset=utf8mb4";
-        $tempPdo = new PDO($rootDsn, $dbUser, $dbPass, $options);
-        $tempPdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
-        $pdo = new PDO($dsn, $dbUser, $dbPass, $options);
-    } catch (PDOException $ex) {
+    // In development or first-time setup, auto-create database if missing
+    if (!isProduction()) {
+        try {
+            $rootDsn = "mysql:host={$dbHost};port={$dbPort};charset=utf8mb4";
+            $tempPdo = new PDO($rootDsn, $dbUser, $dbPass, $options);
+            $tempPdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+            $pdo = new PDO($dsn, $dbUser, $dbPass, $options);
+        } catch (PDOException $ex) {
+            $errId = logAppError($ex, 'database_init');
+            http_response_code(500);
+            die(json_encode([
+                'status'   => 'error',
+                'message'  => 'Database connection failed. Please verify configuration.',
+                'error_id' => $errId
+            ]));
+        }
+    } else {
+        $errId = logAppError($e, 'database_connect');
+        http_response_code(500);
         die(json_encode([
-            'status'  => 'error',
-            'message' => 'Database connection failed: ' . $ex->getMessage()
+            'status'   => 'error',
+            'message'  => 'Database service temporarily unavailable.',
+            'error_id' => $errId
         ]));
     }
 }
@@ -59,6 +74,9 @@ try {
  * Self-healing schema bootstrapper: verifies and seeds tables if empty.
  */
 function ensureSkillSwapSchema(PDO $pdo): void {
+    static $alreadyBootstrapped = false;
+    if ($alreadyBootstrapped) return;
+
     try {
         // Check if gigs table exists
         $check = $pdo->query("SHOW TABLES LIKE 'gigs'");
@@ -100,8 +118,9 @@ function ensureSkillSwapSchema(PDO $pdo): void {
                 ");
             }
         }
+        $alreadyBootstrapped = true;
     } catch (PDOException $e) {
-        // Silently handle
+        logAppError($e, 'schema_bootstrap');
     }
 }
 

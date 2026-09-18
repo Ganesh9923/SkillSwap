@@ -16,6 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Rate limiting (max 10 verification attempts per 10 minutes)
+if (!checkRateLimit('verify_otp', 10, 600)) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'message' => 'Too many invalid attempts. Please wait a few minutes.']);
+    exit;
+}
+
 $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 $code = trim((string)($input['code'] ?? ''));
 

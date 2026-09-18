@@ -17,11 +17,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
-$email = trim((string)($input['email'] ?? ''));
-$name = trim((string)($input['name'] ?? 'Creator / Client'));
+// Rate limiting (max 6 OTP sends per 10 minutes)
+if (!checkRateLimit('send_otp', 6, 600)) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'message' => 'OTP request limit reached. Please wait 10 minutes before requesting another code.']);
+    exit;
+}
 
-if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+$input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+$email = filter_var(trim((string)($input['email'] ?? '')), FILTER_VALIDATE_EMAIL);
+$name = preg_replace('/[\r\n\t]/', '', trim((string)($input['name'] ?? 'Creator / Client')));
+
+if (!$email) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Valid email address is required']);
     exit;
@@ -33,19 +40,20 @@ $_SESSION['verification_otp'] = $otp;
 $_SESSION['verification_email'] = $email;
 $_SESSION['verification_expires'] = time() + 600; // 10 minutes
 
-// Send via Hostinger SMTP
+// Send via Hostinger SMTP or safe simulation
 $mailRes = sendVerificationOtpEmail($email, $name, $otp);
 
 if ($mailRes['success']) {
     echo json_encode([
-        'success' => true,
-        'message' => "Verification code sent to {$email} via Hostinger SMTP.",
-        'email'   => $email
+        'success'   => true,
+        'simulated' => $mailRes['simulated'] ?? false,
+        'message'   => "Verification code sent to {$email}.",
+        'email'     => $email
     ]);
 } else {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => $mailRes['message']
+        'message' => 'Failed to dispatch verification email.'
     ]);
 }

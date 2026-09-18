@@ -16,6 +16,7 @@ $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTT
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     if ($isAjax) {
         http_response_code(405);
+        header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['status' => 'error', 'message' => 'Method Not Allowed']);
         exit;
     }
@@ -23,15 +24,32 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$gigId = (int)($_POST['gig_id'] ?? 0);
-$clientName = trim($_POST['client_name'] ?? '');
-$message = trim($_POST['message'] ?? '');
-$bookedDate = trim($_POST['booked_date'] ?? '');
+// 1. Honeypot check
+if (!validateHoneypot()) {
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Spam verification failed']);
+    exit;
+}
 
-if ($gigId <= 0 || empty($clientName)) {
+// 2. Rate limiting (max 30 per 5 min)
+if (!checkRateLimit('book_gig', 30, 300)) {
+    http_response_code(429);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['status' => 'error', 'message' => 'Booking request limit reached. Please wait before submitting more inquiries.']);
+    exit;
+}
+
+$gigId = (int)($_POST['gig_id'] ?? 0);
+$rawClient = trim((string)($_POST['client_name'] ?? ''));
+$clientName = preg_replace('/[^\p{L}\p{N}\s\.\-\'\@]/u', '', substr($rawClient, 0, 100));
+$message = mb_substr(trim((string)($_POST['message'] ?? '')), 0, 1000);
+$bookedDate = trim((string)($_POST['booked_date'] ?? ''));
+
+if ($gigId <= 0 || mb_strlen($clientName) < 2) {
     if ($isAjax) {
         http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Gig ID and Client Name are required.']);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['status' => 'error', 'message' => 'Valid Gig ID and Client Name (2+ characters) are required.']);
         exit;
     }
     die("Validation Error: Missing Gig ID or Client Name");
@@ -45,6 +63,7 @@ try {
     $_SESSION['client_name'] = $clientName;
 
     if ($isAjax) {
+        header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
             'status'  => 'success',
             'message' => 'Booking created with status Pending!',
@@ -56,10 +75,12 @@ try {
     header('Location: ../my_bookings.php?client_name=' . urlencode($clientName) . '&booked=1');
     exit;
 } catch (Exception $e) {
+    $errId = logAppError($e, 'action_book_gig');
     if ($isAjax) {
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['status' => 'error', 'message' => 'An error occurred while creating booking.', 'error_id' => $errId]);
         exit;
     }
-    die("Error creating booking: " . $e->getMessage());
+    die("Error creating booking. Ref ID: " . htmlspecialchars($errId));
 }

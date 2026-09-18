@@ -25,9 +25,9 @@ require_once __DIR__ . '/../includes/functions.php';
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    $category = $_GET['category'] ?? null;
-    $search = $_GET['q'] ?? $_GET['search'] ?? null;
-    $sort = $_GET['sort'] ?? 'fair';
+    $category = isset($_GET['category']) ? trim((string)$_GET['category']) : null;
+    $search = isset($_GET['q']) ? trim((string)$_GET['q']) : (isset($_GET['search']) ? trim((string)$_GET['search']) : null);
+    $sort = isset($_GET['sort']) ? trim((string)$_GET['sort']) : 'fair';
 
     $gigs = getGigs($category, $search, $sort);
     echo json_encode([
@@ -39,22 +39,45 @@ if ($method === 'GET') {
 }
 
 if ($method === 'POST') {
+    if (!checkRateLimit('api_gigs_post', 30, 300)) {
+        http_response_code(429);
+        echo json_encode(['status' => 'error', 'message' => 'API rate limit exceeded']);
+        exit;
+    }
+
     $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
     $creatorId = (int)($input['creator_id'] ?? 1);
-    $creatorName = trim($input['creator_name'] ?? 'Elena Rostova');
-    $title = trim($input['title'] ?? '');
-    $category = trim($input['category'] ?? '');
+    if (!isset(DEMO_CREATORS[$creatorId])) {
+        $creatorId = 1;
+    }
+    $creatorName = DEMO_CREATORS[$creatorId]['name'];
+
+    $title = trim((string)($input['title'] ?? ''));
+    $category = trim((string)($input['category'] ?? ''));
     $rate = (float)($input['rate'] ?? 0.0);
-    $description = trim($input['description'] ?? '');
+    $description = trim((string)($input['description'] ?? ''));
     $maxSlots = (int)($input['max_slots'] ?? 3);
 
-    if (empty($title) || empty($category) || $rate <= 0 || empty($description)) {
+    // Validation
+    if (mb_strlen($title) < 3 || mb_strlen($title) > 150) {
         http_response_code(400);
-        echo json_encode([
-            'status'  => 'error',
-            'message' => 'Missing required fields: title, category, rate, description'
-        ]);
+        echo json_encode(['status' => 'error', 'message' => 'Title must be between 3 and 150 characters.']);
+        exit;
+    }
+    if (!in_array($category, ALLOWED_CATEGORIES, true)) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Invalid category. Must be one of: ' . implode(', ', ALLOWED_CATEGORIES)]);
+        exit;
+    }
+    if ($rate <= 0 || $rate > 50000) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Rate must be between $1.00 and $50,000.00.']);
+        exit;
+    }
+    if (mb_strlen($description) < 10 || mb_strlen($description) > 2000) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Description must be between 10 and 2000 characters.']);
         exit;
     }
 
@@ -70,10 +93,12 @@ if ($method === 'POST') {
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         exit;
     } catch (Exception $e) {
+        $errId = logAppError($e, 'api_post_gig');
         http_response_code(400);
         echo json_encode([
             'status'  => 'error',
-            'message' => $e->getMessage()
+            'message' => $e->getMessage(),
+            'error_id' => $errId
         ]);
         exit;
     }

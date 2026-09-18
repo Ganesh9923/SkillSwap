@@ -73,6 +73,13 @@ if ($activePersona['type'] === 'creator') {
         </div>
     </div>
 
+    <!-- Hackathon Demo Notice (Constraint #1 & Security Clarification) -->
+    <div style="background: rgba(14, 165, 233, 0.08); border-bottom: 1px solid rgba(56, 189, 248, 0.15); padding: 0.35rem 0; font-size: 0.78rem; text-align: center; color: var(--ice-200);">
+        <div class="container">
+            ⚡ <strong>Hackathon Evaluation Demo:</strong> Zero-authentication by competition brief design. Use the persona switcher above to test Creator and Client workflows. Please do not enter real personal, financial, or confidential data.
+        </div>
+    </div>
+
     <!-- Main Navigation Header -->
     <header class="site-header">
         <div class="container">
