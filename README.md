@@ -15,7 +15,7 @@
   - **Institution**: Lovely Professional University (LPU)
 - **Track**: Track 2 — Real-World Web Product (*SkillSwap Brief*)
 - **Public GitHub Repository**: [https://github.com/Ganesh9923/SkillSwap](https://github.com/Ganesh9923/SkillSwap)
-- **Live Deployed URL**: [https://skillswap-production.vercel.app](https://skillswap-production.vercel.app) *(or local `http://127.0.0.1:8000` / `http://127.0.0.1:8088`)*
+- **Live Deployed URL**: [https://skillswap.dalavix.com](https://skillswap.dalavix.com)
 - **Demo Video Walkthrough (3–4 min)**: [https://youtu.be/AZIS-SNTAGG-SkillSwap-Demo](https://youtu.be/AZIS-SNTAGG-SkillSwap-Demo) *(Walkthrough demonstrating all 5 features, DP1, DP2, and DP3)*
 - **Design Aesthetic Reference**: **igloo.inc** *(Dark glacial palette `#050813`, arctic cyan accents `#00f2fe`, frosted glassmorphic card surfaces, scroll-staged reveals, tactile micro-interactions)*
 
