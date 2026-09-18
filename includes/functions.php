@@ -189,6 +189,7 @@ function getGigs(?string $category = null, ?string $search = null, string $sort 
     $pdo = getDB();
     $params = [];
     $where = [];
+    $sort = strtolower(trim((string)$sort));
 
     if (!empty($category) && $category !== 'All' && in_array($category, ALLOWED_CATEGORIES, true)) {
         $where[] = "g.category = :category";

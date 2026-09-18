@@ -53,7 +53,8 @@ require_once __DIR__ . '/includes/header.php';
 
     <!-- Marketplace Filter & Search Engine (Feature 2 & DP3) -->
     <section id="marketplace-grid" class="filter-search-container reveal stagger-2">
-        <form method="GET" action="index.php#marketplace-grid">
+        <form method="GET" action="index.php#marketplace-grid" id="marketplace-filter-form">
+            <input type="hidden" name="category" value="<?= h($selectedCategory) ?>">
             <div class="search-sort-row">
                 <div class="search-box-wrapper">
                     <span class="search-icon">🔍</span>
@@ -108,7 +109,12 @@ require_once __DIR__ . '/includes/header.php';
                 <a href="index.php#marketplace-grid" class="btn btn-primary">Reset Filters</a>
             </div>
         <?php else: ?>
-            <div class="gigs-grid">
+            <div class="gigs-grid" id="marketplace-gigs-grid">
+                <div id="no-gigs-found" class="glass-panel" style="display: none; padding: 3.5rem 2rem; text-align: center; grid-column: 1 / -1; margin-bottom: 2rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔍</div>
+                    <h3 style="color: #fff; font-size: 1.35rem; margin-bottom: 0.5rem;">No matching gigs found</h3>
+                    <p class="text-muted" style="font-size: 0.9rem;">Try searching for another skill, tool, or creator name.</p>
+                </div>
                 <?php foreach ($gigs as $idx => $gig): ?>
                     <?php 
                         $meta = getCategoryMeta($gig['category']); 
@@ -117,6 +123,9 @@ require_once __DIR__ . '/includes/header.php';
                     <article class="gig-card reveal <?= $staggerClass ?>" 
                              id="gig-card-<?= $gig['id'] ?>"
                              data-id="<?= $gig['id'] ?>"
+                             data-rate="<?= (float)$gig['rate'] ?>"
+                             data-created="<?= strtotime($gig['created_at']) ?>"
+                             data-rating="<?= (float)$gig['rating'] ?>"
                              data-title="<?= h($gig['title']) ?>"
                              data-category="<?= h($gig['category']) ?>"
                              data-creator="<?= h($gig['creator_name']) ?>"

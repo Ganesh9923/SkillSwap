@@ -289,20 +289,22 @@ async function updateStatus(bookingId, status, reason = null, cardElement = null
 }
 
 /**
- * 4. Client-side Search & Category Filtering (Feature 2)
+ * 4. Client-side Search & Category Filtering (Feature 2 & DP3 Sorting)
  */
 function initLiveSearchFilter() {
     const searchInput = document.getElementById('marketplace-search');
-    const gigCards = document.querySelectorAll('.gig-card');
+    const gigsGrid = document.getElementById('marketplace-gigs-grid');
     const sortSelect = document.getElementById('sort-select');
+    const filterForm = document.getElementById('marketplace-filter-form');
 
-    if (searchInput) {
+    if (searchInput && gigsGrid) {
         let debounceTimer;
         searchInput.addEventListener('input', (e) => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 const query = e.target.value.toLowerCase().trim();
                 let matchCount = 0;
+                const gigCards = gigsGrid.querySelectorAll('.gig-card');
 
                 gigCards.forEach(card => {
                     const title = (card.getAttribute('data-title') || '').toLowerCase();
@@ -328,9 +330,42 @@ function initLiveSearchFilter() {
 
     if (sortSelect) {
         sortSelect.addEventListener('change', (e) => {
-            const currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('sort', e.target.value);
-            window.location.href = currentUrl.toString();
+            const sortVal = e.target.value;
+            
+            // 1. Instant Client-Side DOM Re-order for immediate responsiveness
+            if (gigsGrid) {
+                const gigCards = Array.from(gigsGrid.querySelectorAll('.gig-card'));
+                if (gigCards.length > 0) {
+                    gigCards.sort((a, b) => {
+                        const idA = parseInt(a.getAttribute('data-id') || '0', 10);
+                        const idB = parseInt(b.getAttribute('data-id') || '0', 10);
+                        const rateA = parseFloat(a.getAttribute('data-rate') || '0');
+                        const rateB = parseFloat(b.getAttribute('data-rate') || '0');
+                        const createdA = parseInt(a.getAttribute('data-created') || '0', 10);
+                        const createdB = parseInt(b.getAttribute('data-created') || '0', 10);
+
+                        if (sortVal === 'newest') {
+                            return (createdB - createdA) || (idB - idA);
+                        } else if (sortVal === 'cheapest') {
+                            return (rateA - rateB) || (idB - idA);
+                        } else if (sortVal === 'expensive') {
+                            return (rateB - rateA) || (idB - idA);
+                        }
+                        return idB - idA;
+                    });
+
+                    gigCards.forEach(card => gigsGrid.appendChild(card));
+                }
+            }
+
+            // 2. Submit form to synchronize server-side query state & preserve category/search
+            if (filterForm) {
+                filterForm.submit();
+            } else {
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('sort', sortVal);
+                window.location.href = currentUrl.toString();
+            }
         });
     }
 }
