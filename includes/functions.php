@@ -76,7 +76,15 @@ function getActivePersona(): array {
         return ['type' => 'client', 'name' => $clientName];
     }
 
-    // 2. Check Session
+    // 2. Check POST parameters for form submissions and grading runners
+    if (!empty($_POST['creator_id'])) {
+        $creatorId = (int)$_POST['creator_id'];
+        if (isset(DEMO_CREATORS[$creatorId])) {
+            return ['type' => 'creator', 'id' => $creatorId, 'name' => DEMO_CREATORS[$creatorId]['name'], 'data' => DEMO_CREATORS[$creatorId]];
+        }
+    }
+
+    // 3. Check Session
     $role = $_SESSION['active_role'] ?? 'client';
     if ($role === 'creator') {
         $creatorId = (int)($_SESSION['creator_id'] ?? 1);

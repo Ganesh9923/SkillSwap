@@ -15,15 +15,15 @@ require_once __DIR__ . '/includes/functions.php';
 $pageTitle = "Creator Dashboard & Gig Studio";
 $activePersona = getActivePersona();
 
-// Ensure creator persona context
-$currentCreatorId = ($activePersona['type'] === 'creator') ? (int)$activePersona['id'] : 1;
+$isCreator = ($activePersona['type'] === 'creator');
+$currentCreatorId = $isCreator ? (int)$activePersona['id'] : 1;
 $creatorData = DEMO_CREATORS[$currentCreatorId] ?? DEMO_CREATORS[1];
 
 $statusFilter = $_GET['status'] ?? null;
-$creatorBookings = getCreatorBookings($currentCreatorId, $statusFilter);
+$creatorBookings = $isCreator ? getCreatorBookings($currentCreatorId, $statusFilter) : [];
 
 // Calculate metrics
-$allBookings = getCreatorBookings($currentCreatorId, null);
+$allBookings = $isCreator ? getCreatorBookings($currentCreatorId, null) : [];
 $pendingCount = 0;
 $acceptedCount = 0;
 $declinedCount = 0;
@@ -42,12 +42,48 @@ foreach ($allBookings as $b) {
 $pdo = getDB();
 $myGigsStmt = $pdo->prepare("SELECT * FROM gigs WHERE creator_id = :cid ORDER BY id DESC");
 $myGigsStmt->execute([':cid' => $currentCreatorId]);
-$myGigs = $myGigsStmt->fetchAll();
+$myGigs = $isCreator ? $myGigsStmt->fetchAll() : [];
 
 require_once __DIR__ . '/includes/header.php';
 ?>
 
 <main class="container" style="padding-top: 2rem;">
+    <?php if (!$isCreator): ?>
+        <!-- Client Guidance Banner: Enforcing Role Boundary -->
+        <div class="glass-panel reveal" style="padding: 2rem; margin-bottom: 2.5rem; border: 1px solid rgba(245, 158, 11, 0.4); background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(15, 23, 42, 0.7));">
+            <div style="display: flex; align-items: flex-start; gap: 1.25rem; flex-wrap: wrap;">
+                <div style="font-size: 2.2rem; line-height: 1;">💼</div>
+                <div style="flex: 1; min-width: 280px;">
+                    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
+                        <span class="category-tag" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4);">
+                            Client Mode Active
+                        </span>
+                        <h2 style="font-size: 1.35rem; color: #fff; margin: 0;">Viewing as Client: <?= h($activePersona['name']) ?></h2>
+                    </div>
+                    <p class="text-muted" style="margin-bottom: 1.25rem; font-size: 0.92rem; line-height: 1.6;">
+                        The <strong>Creator Hub &amp; Gig Studio</strong> is reserved for <strong>Creators</strong> to post service listings and manage incoming client contracts. As a client, your core workflow is browsing gigs in the marketplace and tracking your inquiries in <strong>My Bookings</strong>.
+                    </p>
+                    <div style="margin-bottom: 1.25rem;">
+                        <div style="font-size: 0.85rem; color: var(--ice-200); margin-bottom: 0.6rem; font-weight: 600;">
+                            ✨ Switch to a Creator persona to post gigs or manage incoming inquiries:
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.6rem;">
+                            <?php foreach (DEMO_CREATORS as $dc): ?>
+                                <a href="creator.php?as_creator=<?= $dc['id'] ?>" class="btn btn-sm btn-secondary" style="border: 1px solid var(--border-ice);">
+                                    <span>👤 <?= h($dc['name']) ?> (<?= h($dc['category']) ?>)</span>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <a href="index.php" class="btn btn-primary btn-sm"><span>← Explore Marketplace</span></a>
+                        <a href="my_bookings.php" class="btn btn-secondary btn-sm"><span>View My Bookings</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <!-- Creator Profile Header -->
     <div class="glass-panel reveal" style="padding: 2rem; margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
         <div style="display: flex; align-items: center; gap: 1.25rem;">
@@ -65,9 +101,11 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div style="display: flex; gap: 0.75rem;">
-            <a href="#post-gig-section" class="btn btn-primary">
-                <span>+ Create New Gig</span>
-            </a>
+            <?php if ($isCreator): ?>
+                <a href="#post-gig-section" class="btn btn-primary">
+                    <span>+ Create New Gig</span>
+                </a>
+            <?php endif; ?>
             <a href="index.php" class="btn btn-secondary">
                 <span>Marketplace View</span>
             </a>
@@ -219,58 +257,77 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         <?php endif; ?>
 
-        <form action="actions/post_gig.php" method="POST">
-            <!-- Bot Protection Honeypot -->
-            <input type="text" name="website_hp" value="" style="display:none !important;" tabindex="-1" autocomplete="off">
-            <input type="hidden" name="creator_id" value="<?= $creatorData['id'] ?>">
-            <input type="hidden" name="creator_name" value="<?= h($creatorData['name']) ?>">
+        <?php if (!$isCreator): ?>
+            <!-- Locked State for Clients -->
+            <div style="background: rgba(15, 23, 42, 0.75); border: 1px dashed var(--border-ice); border-radius: var(--radius-md); padding: 2.5rem 2rem; text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔒</div>
+                <h3 style="color: #fff; font-size: 1.25rem; margin-bottom: 0.5rem;">Creator Identity Required to Post Gigs</h3>
+                <p class="text-muted" style="max-width: 540px; margin: 0 auto 1.5rem; font-size: 0.92rem; line-height: 1.6;">
+                    You are currently viewing as Client <strong><?= h($activePersona['name']) ?></strong>. Gigs must be authored by a verified Creator. Switch identity to list a new service:
+                </p>
+                <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <a href="creator.php?as_creator=1#post-gig-section" class="btn btn-primary">
+                        <span>👤 Switch to Elena Rostova (Design) &amp; Post</span>
+                    </a>
+                    <a href="creator.php?as_creator=2#post-gig-section" class="btn btn-secondary">
+                        <span>👤 Switch to Marcus Vance (Coding)</span>
+                    </a>
+                </div>
+            </div>
+        <?php else: ?>
+            <form action="actions/post_gig.php" method="POST">
+                <!-- Bot Protection Honeypot -->
+                <input type="text" name="website_hp" value="" style="display:none !important;" tabindex="-1" autocomplete="off">
+                <input type="hidden" name="creator_id" value="<?= $creatorData['id'] ?>">
+                <input type="hidden" name="creator_name" value="<?= h($creatorData['name']) ?>">
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
-                <div class="form-group">
-                    <label class="form-label" for="gig-title">Gig Title *</label>
-                    <input type="text" id="gig-title" name="title" class="form-control" 
-                           placeholder="e.g. Next-Gen Glacial UI/UX & Design System" required>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="gig-title">Gig Title *</label>
+                        <input type="text" id="gig-title" name="title" class="form-control" 
+                               placeholder="e.g. Next-Gen Glacial UI/UX & Design System" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="gig-category">Category * (Fixed Brief Specs)</label>
+                        <select id="gig-category" name="category" class="form-control" required>
+                            <option value="" disabled selected>Select Category...</option>
+                            <?php foreach (ALLOWED_CATEGORIES as $cat): ?>
+                                <option value="<?= h($cat) ?>"><?= h($cat) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="gig-rate">Rate ($ USD) *</label>
+                        <input type="number" id="gig-rate" name="rate" class="form-control" 
+                               placeholder="e.g. 175.00" step="0.01" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="gig-max-slots">Max Concurrent Slots (DP2 Capacity)</label>
+                        <input type="number" id="gig-max-slots" name="max_slots" class="form-control" 
+                               value="3" min="1" max="10" title="Defines capacity before showing waitlist warning in DP2">
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="gig-category">Category * (Fixed Brief Specs)</label>
-                    <select id="gig-category" name="category" class="form-control" required>
-                        <option value="" disabled selected>Select Category...</option>
-                        <?php foreach (ALLOWED_CATEGORIES as $cat): ?>
-                            <option value="<?= h($cat) ?>"><?= h($cat) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
-                <div class="form-group">
-                    <label class="form-label" for="gig-rate">Rate ($ USD) *</label>
-                    <input type="number" id="gig-rate" name="rate" class="form-control" 
-                           placeholder="e.g. 175.00" step="0.01" min="1" required>
+                    <label class="form-label" for="gig-description">Detailed Description *</label>
+                    <textarea id="gig-description" name="description" class="form-control" rows="4" 
+                              placeholder="Describe your deliverables, technical stack, revisions included, and requirements from the client..." required></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="gig-max-slots">Max Concurrent Slots (DP2 Capacity)</label>
-                    <input type="number" id="gig-max-slots" name="max_slots" class="form-control" 
-                           value="3" min="1" max="10" title="Defines capacity before showing waitlist warning in DP2">
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                    <button type="reset" class="btn btn-secondary">Clear Form</button>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <span>Publish Gig to Marketplace</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="gig-description">Detailed Description *</label>
-                <textarea id="gig-description" name="description" class="form-control" rows="4" 
-                          placeholder="Describe your deliverables, technical stack, revisions included, and requirements from the client..." required></textarea>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
-                <button type="reset" class="btn btn-secondary">Clear Form</button>
-                <button type="submit" class="btn btn-primary btn-lg">
-                    <span>Publish Gig to Marketplace</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </button>
-            </div>
-        </form>
+            </form>
+        <?php endif; ?>
     </section>
 </main>
 

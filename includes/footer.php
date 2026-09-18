@@ -1,6 +1,6 @@
 <?php
 /**
- * SkillSwap - Unified Glacial Footer & Global Modals
+ * SkillSwap - Shared Footer & Global Modals
  * Hackathon ID: AZIS-SNTAGG | Track 2: Real-World AI Products
  */
 ?>
@@ -22,11 +22,25 @@
                 <input type="text" name="website_hp" value="" style="display:none !important;" tabindex="-1" autocomplete="off">
                 <input type="hidden" id="modal-gig-id" name="gig_id" value="">
 
-                <div class="form-group">
-                    <label class="form-label" for="client-name-input">Your Name / Client Identity</label>
-                    <input type="text" id="client-name-input" name="client_name" class="form-control" 
-                           value="<?= h($activePersona['name']) ?>" required placeholder="e.g. Sarah Jenkins">
-                </div>
+                <?php if ($activePersona['type'] === 'creator'): ?>
+                    <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid var(--border-ice); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.82rem; color: var(--ice-200);">
+                        ℹ️ <strong>Creator Active:</strong> You are viewing as Creator (<?= h($activePersona['name']) ?>). Booking is a Client action—select which client persona to book under:
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="client-name-input">Client Persona For Booking *</label>
+                        <select id="client-name-input" name="client_name" class="form-control" required>
+                            <?php foreach (DEMO_CLIENTS as $cl): ?>
+                                <option value="<?= h($cl['name']) ?>">🏢 <?= h($cl['name']) ?> (<?= h($cl['company']) ?>)</option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                <?php else: ?>
+                    <div class="form-group">
+                        <label class="form-label" for="client-name-input">Your Name / Client Identity *</label>
+                        <input type="text" id="client-name-input" name="client_name" class="form-control" 
+                               value="<?= h($activePersona['name']) ?>" required placeholder="e.g. Sarah Jenkins">
+                    </div>
+                <?php endif; ?>
 
                 <div class="form-group">
                     <label class="form-label" for="booking-date-input">Target Start / Delivery Date</label>
@@ -107,7 +121,7 @@
                         <span>Skill<span class="text-gradient-cyan">Swap</span></span>
                     </div>
                     <p style="font-size: 0.88rem; line-height: 1.7; margin-bottom: 1.25rem;">
-                        A creator gig marketplace built with glacial luxury craft, robust MySQL PDO prepared statements, and deliberate architectural choices for Track 2.
+                        A simple creator marketplace for discovering services, sending project requests, and managing bookings without an account barrier.
                     </p>
                     <div class="footer-badge-box">
                         <span>⚡ Hackathon ID:</span>
@@ -116,21 +130,20 @@
                 </div>
 
                 <div>
-                    <h4 style="font-size: 1rem; color: #fff; margin-bottom: 1rem;">Architectural Decision Points</h4>
+                    <h4 style="font-size: 1rem; margin-bottom: 1rem;">How it works</h4>
                     <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.88rem;">
-                        <li><span style="color: var(--ice-300); font-weight: 600;">DP1 Rejection:</span> Transparent reasons & 1-click alternative routing</li>
-                        <li><span style="color: var(--ice-300); font-weight: 600;">DP2 Double Booking:</span> Capacity-aware queue without premature hard-locks</li>
-                        <li><span style="color: var(--ice-300); font-weight: 600;">DP3 Discovery:</span> Freshness + Response-rate hybrid fair ranking</li>
+                        <li><span style="color: var(--accent); font-weight: 600;">Clear feedback:</span> Declined requests include helpful next steps.</li>
+                        <li><span style="color: var(--accent); font-weight: 600;">Capacity-aware:</span> Creators can manage active work sustainably.</li>
+                        <li><span style="color: var(--accent); font-weight: 600;">Fair discovery:</span> Quality and responsiveness inform ranking.</li>
                     </ul>
                 </div>
 
                 <div>
-                    <h4 style="font-size: 1rem; color: #fff; margin-bottom: 1rem;">Quick Navigation</h4>
+                    <h4 style="font-size: 1rem; margin-bottom: 1rem;">Explore</h4>
                     <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.88rem;">
-                        <li><a href="index.php" style="color: var(--text-secondary); text-decoration: none;">Marketplace & Gigs</a></li>
-                        <li><a href="creator.php" style="color: var(--text-secondary); text-decoration: none;">Creator Dashboard & Post</a></li>
-                        <li><a href="my_bookings.php" style="color: var(--text-secondary); text-decoration: none;">Client Bookings Tracker</a></li>
-                        <li><a href="setup.php" style="color: var(--text-secondary); text-decoration: none;">System & Database Diagnostics</a></li>
+                        <li><a href="index.php" style="color: var(--text-secondary); text-decoration: none;">Browse gigs</a></li>
+                        <li><a href="creator.php" style="color: var(--text-secondary); text-decoration: none;">Creator workspace</a></li>
+                        <li><a href="my_bookings.php" style="color: var(--text-secondary); text-decoration: none;">My bookings</a></li>
                     </ul>
                 </div>
             </div>

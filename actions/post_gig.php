@@ -39,9 +39,22 @@ if (!checkRateLimit('post_gig', 20, 300)) {
     exit;
 }
 
-// 3. Derive creator identity from active demo persona session
+// 3. Enforce creator identity from active demo persona session
 $activePersona = getActivePersona();
-$creatorId = ($activePersona['type'] === 'creator') ? (int)$activePersona['id'] : 1;
+if ($activePersona['type'] !== 'creator') {
+    if ($isAjax) {
+        http_response_code(403);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'status'  => 'error', 
+            'message' => 'Unauthorized: Only Creators can post gigs. Please switch to a Creator persona in the top identity bar.'
+        ]);
+        exit;
+    }
+    die("Access Denied: Only Creators can post gigs. Please switch to a Creator persona using the top switcher.");
+}
+
+$creatorId = (int)$activePersona['id'];
 if (!isset(DEMO_CREATORS[$creatorId])) {
     $creatorId = 1;
 }

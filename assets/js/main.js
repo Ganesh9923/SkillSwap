@@ -60,16 +60,16 @@ function initPersonaSwitcher() {
         if (val.startsWith('creator_')) {
             const creatorId = val.replace('creator_', '');
             currentUrl.searchParams.set('as_creator', creatorId);
-            // If on client page, redirect to creator hub
+            // If currently on client-specific page, smoothly transition to Creator Hub
             if (window.location.pathname.includes('my_bookings.php')) {
                 currentUrl.pathname = currentUrl.pathname.replace('my_bookings.php', 'creator.php');
             }
         } else if (val.startsWith('client_')) {
             const clientName = val.replace('client_', '');
             currentUrl.searchParams.set('as_client', clientName);
-            // If on creator page and switching to client, redirect to client hub
+            // If on creator-specific page and switching to client, redirect to My Bookings
             if (window.location.pathname.includes('creator.php') || window.location.pathname.includes('post_gig.php')) {
-                currentUrl.pathname = currentUrl.pathname.replace(/creator\.php|post_gig\.php/, 'client.php');
+                currentUrl.pathname = currentUrl.pathname.replace(/creator\.php|post_gig\.php/, 'my_bookings.php');
             }
         }
 

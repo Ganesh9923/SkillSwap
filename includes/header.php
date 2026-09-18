@@ -25,7 +25,7 @@ if ($activePersona['type'] === 'creator') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= isset($pageTitle) ? h($pageTitle) . ' | SkillSwap' : 'SkillSwap — Creator Gig Marketplace' ?></title>
-    <meta name="description" content="Next-generation creator gig marketplace with glacial aesthetics, instant zero-auth switching, and real-time project collaboration.">
+    <meta name="description" content="A clear, no-login creator marketplace demo for browsing, booking, and managing creative work.">
     <meta name="hackathon-id" content="AZIS-SNTAGG">
     <meta name="team" content="Om's team (Om Dipak Kanase - Leader, Ganesh Arun Dalave - Team Member 1), LPU">
     
@@ -34,16 +34,12 @@ if ($activePersona['type'] === 'creator') {
     <link rel="stylesheet" href="assets/css/components.css">
 </head>
 <body>
-    <!-- Ambient Glacial Lighting Orbs -->
-    <div class="bg-ambient-orb orb-1"></div>
-    <div class="bg-ambient-orb orb-2"></div>
-
     <!-- Universal Zero-Auth Persona Switcher Bar (Constraint #1) -->
     <div class="persona-bar">
         <div class="container persona-bar-content">
             <div class="persona-label">
                 <span class="pulse-dot"></span>
-                <span>Viewing as: <strong style="color: #fff;"><?= h($activePersona['name']) ?></strong> (<?= ucfirst($activePersona['type']) ?>)</span>
+                <span>Viewing as <strong><?= h($activePersona['name']) ?></strong> · <?= ucfirst($activePersona['type']) ?></span>
             </div>
             <div class="persona-switcher-controls">
                 <label for="persona-select" style="color: var(--text-muted); font-size: 0.8rem;">Switch Identity:</label>
@@ -73,10 +69,10 @@ if ($activePersona['type'] === 'creator') {
         </div>
     </div>
 
-    <!-- Hackathon Demo Notice (Constraint #1 & Security Clarification) -->
-    <div style="background: rgba(14, 165, 233, 0.08); border-bottom: 1px solid rgba(56, 189, 248, 0.15); padding: 0.35rem 0; font-size: 0.78rem; text-align: center; color: var(--ice-200);">
+    <!-- Hackathon Demo Notice (required zero-auth access) -->
+    <div style="background: var(--accent-soft); border-bottom: 1px solid var(--line); padding: 0.35rem 0; font-size: 0.75rem; text-align: center; color: var(--ink-soft);">
         <div class="container">
-            ⚡ <strong>Hackathon Evaluation Demo:</strong> Zero-authentication by competition brief design. Use the persona switcher above to test Creator and Client workflows. Please do not enter real personal, financial, or confidential data.
+            <strong>Hackathon demo:</strong> switch personas above to test creator and client workflows—no account needed.
         </div>
     </div>
 
@@ -95,23 +91,32 @@ if ($activePersona['type'] === 'creator') {
 
                 <ul class="nav-links">
                     <li><a href="index.php" class="nav-link <?= $currentPage === 'index.php' ? 'active' : '' ?>">Marketplace</a></li>
-                    <li><a href="creator.php" class="nav-link <?= in_array($currentPage, ['creator.php', 'post_gig.php']) ? 'active' : '' ?>">Creator Hub</a></li>
-                    <li>
-                        <a href="my_bookings.php" class="nav-link <?= $currentPage === 'my_bookings.php' ? 'active' : '' ?>">
-                            My Bookings
-                            <?php if ($activePersona['type'] === 'client' && $pendingBadgeCount > 0): ?>
-                                <span class="nav-badge-count"><?= $pendingBadgeCount ?></span>
-                            <?php endif; ?>
-                        </a>
-                    </li>
-                    <li><a href="verify_email.php" class="nav-link <?= $currentPage === 'verify_email.php' ? 'active' : '' ?>">Email Verification</a></li>
-                    <li><a href="setup.php" class="nav-link <?= $currentPage === 'setup.php' ? 'active' : '' ?>" style="color: var(--text-muted); font-size: 0.85rem;">Diagnostics</a></li>
+                    <?php if ($activePersona['type'] === 'creator'): ?>
+                        <li><a href="creator.php" class="nav-link <?= in_array($currentPage, ['creator.php', 'post_gig.php']) ? 'active' : '' ?>">Creator Hub</a></li>
+                        <li><a href="my_bookings.php" class="nav-link <?= $currentPage === 'my_bookings.php' ? 'active' : '' ?>">Client Bookings Tracker</a></li>
+                    <?php else: ?>
+                        <li>
+                            <a href="my_bookings.php" class="nav-link <?= $currentPage === 'my_bookings.php' ? 'active' : '' ?>">
+                                My Bookings
+                                <?php if ($pendingBadgeCount > 0): ?>
+                                    <span class="nav-badge-count"><?= $pendingBadgeCount ?></span>
+                                <?php endif; ?>
+                            </a>
+                        </li>
+                        <li><a href="creator.php" class="nav-link <?= in_array($currentPage, ['creator.php', 'post_gig.php']) ? 'active' : '' ?>" title="Switch to Creator to manage gigs">Creator Studio</a></li>
+                    <?php endif; ?>
                 </ul>
 
                 <div style="display: flex; gap: 0.75rem; align-items: center;">
-                    <a href="creator.php#post-gig-section" class="btn btn-sm btn-primary">
-                        <span>+ Post a Gig</span>
-                    </a>
+                    <?php if ($activePersona['type'] === 'creator'): ?>
+                        <a href="creator.php#post-gig-section" class="btn btn-sm btn-primary">
+                            <span>+ Post a Gig</span>
+                        </a>
+                    <?php else: ?>
+                        <a href="index.php#marketplace-grid" class="btn btn-sm btn-primary">
+                            <span>Explore Marketplace</span>
+                        </a>
+                    <?php endif; ?>
                 </div>
             </nav>
         </div>

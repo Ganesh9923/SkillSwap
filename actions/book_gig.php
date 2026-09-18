@@ -45,14 +45,30 @@ $clientName = preg_replace('/[^\p{L}\p{N}\s\.\-\'\@]/u', '', substr($rawClient, 
 $message = mb_substr(trim((string)($_POST['message'] ?? '')), 0, 1000);
 $bookedDate = trim((string)($_POST['booked_date'] ?? ''));
 
-if ($gigId <= 0 || mb_strlen($clientName) < 2) {
+// Check active persona: Creators cannot book their own gigs
+$activePersona = getActivePersona();
+$gig = getGigById($gigId);
+if (!$gig) {
+    if ($isAjax) {
+        http_response_code(404);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['status' => 'error', 'message' => 'Gig not found.']);
+        exit;
+    }
+    die("Gig not found.");
+}
+
+if ($activePersona['type'] === 'creator' && (int)$gig['creator_id'] === (int)$activePersona['id']) {
     if ($isAjax) {
         http_response_code(400);
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['status' => 'error', 'message' => 'Valid Gig ID and Client Name (2+ characters) are required.']);
+        echo json_encode([
+            'status'  => 'error', 
+            'message' => 'You cannot book your own gig! You are the creator of this gig. Manage it from your Creator Hub.'
+        ]);
         exit;
     }
-    die("Validation Error: Missing Gig ID or Client Name");
+    die("Error: You cannot book your own gig.");
 }
 
 try {

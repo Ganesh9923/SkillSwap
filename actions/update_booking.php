@@ -47,6 +47,21 @@ if ($bookingId <= 0 || !in_array($status, ['Accepted', 'Declined', 'Pending'], t
     die("Validation Error: Invalid parameters.");
 }
 
+// Role Enforcement: Only Creators can update booking statuses
+$activePersona = getActivePersona();
+if ($activePersona['type'] !== 'creator') {
+    if ($isAjax) {
+        http_response_code(403);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'status'  => 'error', 
+            'message' => 'Unauthorized: Only Creators can accept or decline bookings. Please switch to a Creator persona.'
+        ]);
+        exit;
+    }
+    die("Access Denied: Only Creators can accept or decline bookings.");
+}
+
 try {
     $updated = updateBookingStatus($bookingId, $status, $declineReason ?: null);
 

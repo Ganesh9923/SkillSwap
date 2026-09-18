@@ -61,7 +61,8 @@ $bookingStatus = $bookRes['body']['data']['status'] ?? null;
 echo "         Created Booking ID: {$newBookingId} | Status: {$bookingStatus}\n\n";
 
 // 3. Creator Accept Booking HTTP Test
-$acceptRes = httpPost("{$baseUrl}/actions/update_booking.php", [
+$acceptRes = httpPost("{$baseUrl}/actions/update_booking.php?as_creator=1", [
+    'creator_id' => 1,
     'booking_id' => $newBookingId,
     'status'     => 'Accepted'
 ]);
@@ -78,7 +79,8 @@ $bookRes2 = httpPost("{$baseUrl}/actions/book_gig.php", [
 ]);
 $b2Id = $bookRes2['body']['data']['id'] ?? null;
 
-$declineRes = httpPost("{$baseUrl}/actions/update_booking.php", [
+$declineRes = httpPost("{$baseUrl}/actions/update_booking.php?as_creator=2", [
+    'creator_id'     => 2,
     'booking_id'     => $b2Id,
     'status'         => 'Declined',
     'decline_reason' => '24-hour turnaround exceeds standard sprint capacity. Recommend checking alternative backend developers.'

@@ -24,51 +24,31 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <main class="container">
-    <!-- Hero Showcase (igloo.inc style) -->
+    <!-- Marketplace introduction -->
     <section class="hero-section reveal">
         <div class="hero-pill">
-            <span>✨ Real-World AI Products Hackathon</span>
-            <span style="color: var(--border-subtle);">&bull;</span>
-            <span style="color: var(--ice-cyan); font-weight: 700;">Track 2</span>
+            <span>Creator marketplace</span>
         </div>
         
         <h1 class="display-title">
-            Exceptional Talent.<br>
-            <span class="text-gradient-cyan">Glacial Precision.</span>
+            Find the right person<br>
+            <span class="text-gradient-cyan">for the work.</span>
         </h1>
         
         <p class="hero-subtitle">
-            Exchange creator gigs in design, coding, video editing, and generative media. Zero authentication barrier for instant hackathon evaluation.
+            Browse specialised creator services, compare the details, and send a project request in a few clear steps.
         </p>
 
         <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
             <a href="#marketplace-grid" class="btn btn-primary btn-lg">
-                <span>Explore Marketplace</span>
+                <span>Explore gigs</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
             </a>
             <a href="creator.php" class="btn btn-secondary btn-lg">
-                <span>Post as Creator</span>
+                <span>List your service</span>
             </a>
         </div>
 
-        <div class="hero-stats reveal stagger-1">
-            <div class="hero-stat-card">
-                <div class="hero-stat-val"><?= count($gigs) ?>+</div>
-                <div class="hero-stat-lbl">Active Verified Gigs</div>
-            </div>
-            <div class="hero-stat-card">
-                <div class="hero-stat-val">100%</div>
-                <div class="hero-stat-lbl">Zero-Auth Access</div>
-            </div>
-            <div class="hero-stat-card">
-                <div class="hero-stat-val">sub-50ms</div>
-                <div class="hero-stat-lbl">PDO Prepared Queries</div>
-            </div>
-            <div class="hero-stat-card">
-                <div class="hero-stat-val">3 DPs</div>
-                <div class="hero-stat-lbl">Architectural Decisions</div>
-            </div>
-        </div>
     </section>
 
     <!-- Marketplace Filter & Search Engine (Feature 2 & DP3) -->
@@ -188,16 +168,22 @@ require_once __DIR__ . '/includes/header.php';
 
                             <!-- Booking Action Button (Feature 3 Trigger) -->
                             <div style="display: flex; gap: 0.5rem;">
-                                <button type="button" 
-                                        class="btn btn-primary book-gig-btn" 
-                                        style="width: 100%;"
-                                        data-gig-id="<?= $gig['id'] ?>"
-                                        data-gig-title="<?= h($gig['title']) ?>"
-                                        data-creator-name="<?= h($gig['creator_name']) ?>"
-                                        data-gig-rate="<?= formatRate($gig['rate']) ?>">
-                                    <span>Book Gig</span>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                                </button>
+                                <?php if ($activePersona['type'] === 'creator' && (int)$gig['creator_id'] === (int)$activePersona['id']): ?>
+                                    <a href="creator.php" class="btn btn-secondary" style="width: 100%; border: 1px solid var(--ice-cyan); color: var(--ice-cyan);">
+                                        <span>👑 Your Gig &bull; Manage on Hub</span>
+                                    </a>
+                                <?php else: ?>
+                                    <button type="button" 
+                                            class="btn btn-primary book-gig-btn" 
+                                            style="width: 100%;"
+                                            data-gig-id="<?= $gig['id'] ?>"
+                                            data-gig-title="<?= h($gig['title']) ?>"
+                                            data-creator-name="<?= h($gig['creator_name']) ?>"
+                                            data-gig-rate="<?= formatRate($gig['rate']) ?>">
+                                        <span>Book Gig</span>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </article>

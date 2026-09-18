@@ -13,7 +13,8 @@ require_once __DIR__ . '/includes/functions.php';
 $pageTitle = "My Bookings";
 $activePersona = getActivePersona();
 
-$clientName = $_GET['client_name'] ?? $activePersona['name'];
+$isCreator = ($activePersona['type'] === 'creator');
+$clientName = $_GET['client_name'] ?? ($isCreator ? DEMO_CLIENTS[1]['name'] : $activePersona['name']);
 $statusFilter = $_GET['status'] ?? null;
 
 $bookings = getClientBookings($clientName, $statusFilter);
@@ -33,6 +34,42 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <main class="container" style="padding-top: 2.5rem;">
+    <?php if ($isCreator): ?>
+        <!-- Creator Notice Banner: Enforcing Role Guidance -->
+        <div class="glass-panel reveal" style="padding: 1.75rem 2rem; margin-bottom: 2.5rem; border: 1px solid rgba(56, 189, 248, 0.4); background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(15, 23, 42, 0.7));">
+            <div style="display: flex; align-items: flex-start; gap: 1.25rem; flex-wrap: wrap;">
+                <div style="font-size: 2.2rem; line-height: 1;">👑</div>
+                <div style="flex: 1; min-width: 280px;">
+                    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
+                        <span class="category-tag" style="background: rgba(56, 189, 248, 0.2); color: var(--ice-cyan); border-color: rgba(56, 189, 248, 0.4);">
+                            Creator Mode Active
+                        </span>
+                        <h2 style="font-size: 1.35rem; color: #fff; margin: 0;">Viewing as Creator: <?= h($activePersona['name']) ?></h2>
+                    </div>
+                    <p class="text-muted" style="margin-bottom: 1.25rem; font-size: 0.92rem; line-height: 1.6;">
+                        This page tracks bookings sent by <strong>Clients</strong>. To review, accept, or decline incoming bookings on your gigs, visit your <strong><a href="creator.php" style="color: var(--ice-cyan); text-decoration: underline;">Creator Hub Dashboard</a></strong>. To view inquiries under a client identity, switch below:
+                    </p>
+                    <div style="margin-bottom: 1.25rem;">
+                        <div style="font-size: 0.85rem; color: var(--ice-200); margin-bottom: 0.6rem; font-weight: 600;">
+                            ✨ Switch to a Client persona to track client bookings:
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.6rem;">
+                            <?php foreach (DEMO_CLIENTS as $dcl): ?>
+                                <a href="my_bookings.php?as_client=<?= urlencode($dcl['name']) ?>" class="btn btn-sm btn-secondary" style="border: 1px solid var(--border-ice);">
+                                    <span>🏢 <?= h($dcl['name']) ?> (<?= h($dcl['company']) ?>)</span>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <a href="creator.php" class="btn btn-primary btn-sm"><span>Go to Creator Dashboard</span></a>
+                        <a href="index.php" class="btn btn-secondary btn-sm"><span>Marketplace</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <!-- Client Hub Banner -->
     <div class="glass-panel reveal" style="padding: 2rem; margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
         <div>
