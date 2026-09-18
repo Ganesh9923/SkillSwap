@@ -137,7 +137,7 @@
 
             <div class="footer-bottom">
                 <div>
-                    &copy; <?= date('Y') ?> SkillSwap &bull; Team <strong>Duo (Ganesh Arun Dalave, Om Dipak Kanase), LPU</strong>
+                    &copy; <?= date('Y') ?> SkillSwap &bull; Team <strong>Om's team (Om Dipak Kanase - Leader, Ganesh Arun Dalave - Member 1), LPU</strong>
                 </div>
                 <div>
                     Track 2: Real-World AI Products &bull; Strict Zero-Auth Grader Compliance

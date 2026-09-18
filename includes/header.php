@@ -27,7 +27,7 @@ if ($activePersona['type'] === 'creator') {
     <title><?= isset($pageTitle) ? h($pageTitle) . ' | SkillSwap' : 'SkillSwap — Creator Gig Marketplace' ?></title>
     <meta name="description" content="Next-generation creator gig marketplace with glacial aesthetics, instant zero-auth switching, and real-time project collaboration.">
     <meta name="hackathon-id" content="AZIS-SNTAGG">
-    <meta name="team" content="Duo (Ganesh Arun Dalave, Om Dipak Kanase), LPU">
+    <meta name="team" content="Om's team (Om Dipak Kanase - Leader, Ganesh Arun Dalave - Team Member 1), LPU">
     
     <!-- Design System CSS -->
     <link rel="stylesheet" href="assets/css/style.css">

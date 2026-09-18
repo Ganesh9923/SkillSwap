@@ -1,7 +1,7 @@
 # SkillSwap — Architectural & Marketplace Decision Points (DECISIONS.md)
 
 **Hackathon ID**: `AZIS-SNTAGG`  
-**Team**: Duo (Ganesh Arun Dalave, Om Dipak Kanase), LPU  
+**Team**: Om's team (Om Dipak Kanase - Leader, Ganesh Arun Dalave - Team Member 1), LPU  
 **Track**: Real-World AI Products (Track 2: SkillSwap Creator Marketplace)
 
 ---

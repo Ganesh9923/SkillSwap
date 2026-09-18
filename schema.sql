@@ -1,6 +1,6 @@
 -- SkillSwap Database Schema (Track 2: Real-World AI Products)
 -- Hackathon ID: AZIS-SNTAGG
--- Team: Duo (Ganesh Arun Dalave, Om Dipak Kanase), LPU
+-- Team: Om's team (Om Dipak Kanase - Leader, Ganesh Arun Dalave - Team Member 1), LPU
 
 CREATE DATABASE IF NOT EXISTS `skillswap_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `skillswap_db`;
