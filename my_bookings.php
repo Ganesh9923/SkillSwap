@@ -14,7 +14,7 @@ $pageTitle = "My Bookings";
 $activePersona = getActivePersona();
 
 $isCreator = ($activePersona['type'] === 'creator');
-$clientName = $_GET['client_name'] ?? ($isCreator ? DEMO_CLIENTS[1]['name'] : $activePersona['name']);
+$clientName = ($activePersona['type'] === 'client') ? $activePersona['name'] : ($_GET['client_name'] ?? DEMO_CLIENTS[1]['name']);
 $statusFilter = $_GET['status'] ?? null;
 
 $bookings = getClientBookings($clientName, $statusFilter);

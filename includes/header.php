@@ -53,7 +53,7 @@ if ($activePersona['type'] === 'creator') {
                     </optgroup>
                     <optgroup label="💼 Client Personas">
                         <?php foreach (DEMO_CLIENTS as $cl): ?>
-                            <option value="client_<?= urlencode($cl['name']) ?>" <?= ($activePersona['type'] === 'client' && $activePersona['name'] === $cl['name']) ? 'selected' : '' ?>>
+                            <option value="client_<?= $cl['id'] ?>" <?= ($activePersona['type'] === 'client' && (($activePersona['id'] ?? 0) == $cl['id'] || $activePersona['name'] === $cl['name'])) ? 'selected' : '' ?>>
                                 🏢 Client: <?= h($cl['name']) ?> (<?= h($cl['company']) ?>)
                             </option>
                         <?php endforeach; ?>

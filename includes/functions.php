@@ -62,18 +62,25 @@ function getActivePersona(): array {
     }
     if (!empty($_GET['as_client'])) {
         $rawClient = trim((string)$_GET['as_client']);
-        // Match against fixed seeded demo clients allowlist
+        $decodedClient = urldecode($rawClient);
+        $plusNormalized = str_replace('+', ' ', $decodedClient);
+
         $matchedClient = null;
         foreach (DEMO_CLIENTS as $dc) {
-            if (strcasecmp($dc['name'], $rawClient) === 0 || (string)$dc['id'] === $rawClient) {
-                $matchedClient = $dc['name'];
+            if ((string)$dc['id'] === $rawClient || 
+                (string)$dc['id'] === $decodedClient ||
+                strcasecmp($dc['name'], $rawClient) === 0 || 
+                strcasecmp($dc['name'], $decodedClient) === 0 ||
+                strcasecmp($dc['name'], $plusNormalized) === 0) {
+                $matchedClient = $dc;
                 break;
             }
         }
-        $clientName = $matchedClient ?: DEMO_CLIENTS[1]['name'];
+        $client = $matchedClient ?: DEMO_CLIENTS[1];
         $_SESSION['active_role'] = 'client';
-        $_SESSION['client_name'] = $clientName;
-        return ['type' => 'client', 'name' => $clientName];
+        $_SESSION['client_id'] = $client['id'];
+        $_SESSION['client_name'] = $client['name'];
+        return ['type' => 'client', 'id' => $client['id'], 'name' => $client['name'], 'company' => $client['company'] ?? '', 'data' => $client];
     }
 
     // 2. Check POST parameters for form submissions and grading runners
@@ -91,16 +98,22 @@ function getActivePersona(): array {
         $creator = DEMO_CREATORS[$creatorId] ?? DEMO_CREATORS[1];
         return ['type' => 'creator', 'id' => $creator['id'], 'name' => $creator['name'], 'data' => $creator];
     } else {
-        $sessionClient = $_SESSION['client_name'] ?? DEMO_CLIENTS[1]['name'];
-        $validClient = false;
-        foreach (DEMO_CLIENTS as $dc) {
-            if ($dc['name'] === $sessionClient) {
-                $validClient = true;
-                break;
+        $sessionClientId = (int)($_SESSION['client_id'] ?? 0);
+        $sessionClientName = $_SESSION['client_name'] ?? '';
+        
+        $matched = null;
+        if ($sessionClientId && isset(DEMO_CLIENTS[$sessionClientId])) {
+            $matched = DEMO_CLIENTS[$sessionClientId];
+        } else {
+            foreach (DEMO_CLIENTS as $dc) {
+                if (strcasecmp($dc['name'], $sessionClientName) === 0) {
+                    $matched = $dc;
+                    break;
+                }
             }
         }
-        $clientName = $validClient ? $sessionClient : DEMO_CLIENTS[1]['name'];
-        return ['type' => 'client', 'name' => $clientName];
+        $client = $matched ?: DEMO_CLIENTS[1];
+        return ['type' => 'client', 'id' => $client['id'], 'name' => $client['name'], 'company' => $client['company'] ?? '', 'data' => $client];
     }
 }
 

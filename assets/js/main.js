@@ -56,6 +56,10 @@ function initPersonaSwitcher() {
         const currentUrl = new URL(window.location.href);
         currentUrl.searchParams.delete('as_creator');
         currentUrl.searchParams.delete('as_client');
+        currentUrl.searchParams.delete('client_name');
+        currentUrl.searchParams.delete('error');
+        currentUrl.searchParams.delete('posted');
+        currentUrl.searchParams.delete('booked');
 
         if (val.startsWith('creator_')) {
             const creatorId = val.replace('creator_', '');
@@ -65,8 +69,8 @@ function initPersonaSwitcher() {
                 currentUrl.pathname = currentUrl.pathname.replace('my_bookings.php', 'creator.php');
             }
         } else if (val.startsWith('client_')) {
-            const clientName = val.replace('client_', '');
-            currentUrl.searchParams.set('as_client', clientName);
+            const clientId = val.replace('client_', '');
+            currentUrl.searchParams.set('as_client', clientId);
             // If on creator-specific page and switching to client, redirect to My Bookings
             if (window.location.pathname.includes('creator.php') || window.location.pathname.includes('post_gig.php')) {
                 currentUrl.pathname = currentUrl.pathname.replace(/creator\.php|post_gig\.php/, 'my_bookings.php');
