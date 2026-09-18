@@ -97,6 +97,7 @@ if ($activePersona['type'] === 'creator') {
                             <?php endif; ?>
                         </a>
                     </li>
+                    <li><a href="verify_email.php" class="nav-link <?= $currentPage === 'verify_email.php' ? 'active' : '' ?>">Email Verification</a></li>
                     <li><a href="setup.php" class="nav-link <?= $currentPage === 'setup.php' ? 'active' : '' ?>" style="color: var(--text-muted); font-size: 0.85rem;">Diagnostics</a></li>
                 </ul>
 

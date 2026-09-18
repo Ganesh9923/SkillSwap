@@ -202,6 +202,39 @@ runTest("Payment Gateway & Escrow: Checkout Lock & DP1 Auto-Refund", function() 
     return "Payment #{$payRes['payment_id']} locked in Escrow ({$payRes['transaction_id']}) and auto-refunded upon DP1 decline.";
 });
 
+// TEST 11: Hostinger SMTP Email Verification Service
+runTest("Hostinger SMTP: SSL Port 465 Socket Mailer Verification", function() {
+    require_once __DIR__ . '/includes/mailer.php';
+    $res = sendVerificationOtpEmail('support@dalavix.com', 'SkillSwap Verification', '889922');
+    if (!$res['success']) {
+        throw new Exception("SMTP dispatch failed: " . $res['message']);
+    }
+    return "Dispatched cryptographic OTP to support@dalavix.com via smtp.hostinger.com:465.";
+});
+
+// TEST 12: Razorpay Live Gateway Integration
+runTest("Razorpay Live Gateway: Order Creation & Signature Verification", function() {
+    require_once __DIR__ . '/includes/razorpay.php';
+    
+    $order = createRazorpayOrder(10.00, 'test_suite_' . time(), ['source' => 'Automated Test Suite']);
+    if (!$order['success']) {
+        throw new Exception("Razorpay order creation failed: " . $order['message']);
+    }
+    
+    // Test signature verification
+    $config = getRazorpayConfig();
+    $testOrderId = $order['order_id'];
+    $testPaymentId = "pay_test_" . bin2hex(random_bytes(4));
+    $validSig = hash_hmac('sha256', $testOrderId . '|' . $testPaymentId, $config['key_secret']);
+    
+    $isSigValid = verifyRazorpaySignature($testOrderId, $testPaymentId, $validSig);
+    if (!$isSigValid) {
+        throw new Exception("HMAC-SHA256 signature verification returned false");
+    }
+    
+    return "Razorpay Live Order {$testOrderId} (₹{$order['amount_inr']} INR) generated and signature verified.";
+});
+
 // Output Handling (CLI or Web)
 if ($isCli) {
     echo "\n=======================================================\n";
