@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "functions": {
+    "api/*.php": {
+      "runtime": "vercel-php@0.7.3"
+    },
+    "actions/*.php": {
+      "runtime": "vercel-php@0.7.3"
+    },
+    "*.php": {
+      "runtime": "vercel-php@0.7.3"
+    }
+  },
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/index.php"
+    },
+    {
+      "src": "/creator",
+      "dest": "/creator.php"
+    },
+    {
+      "src": "/my_bookings",
+      "dest": "/my_bookings.php"
+    },
+    {
+      "src": "/client",
+      "dest": "/client.php"
+    },
+    {
+      "src": "/setup",
+      "dest": "/setup.php"
+    },
+    {
+      "src": "/test_suite",
+      "dest": "/test_suite.php"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}
