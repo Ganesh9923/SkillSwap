@@ -14,7 +14,7 @@
   - **Team Member 1**: **Ganesh Arun Dalave** (*Web Development and Functionalities*)
   - **Institution**: Lovely Professional University (LPU)
 - **Track**: Track 2 — Real-World Web Product (*SkillSwap Brief*)
-- **Public GitHub Repository**: [https://github.com/Ganesh9923/SkillSwap](https://github.com/Ganesh9923/SkillSwap)
+- **Public GitHub Repository**: [https://github.com/hcoona01/SkillSwap](https://github.com/hcoona01/SkillSwap)
 - **Live Deployed URL**: [https://skillswap.dalavix.com](https://skillswap.dalavix.com)
 - **Demo Video Walkthrough (3–4 min)**: [https://drive.google.com/file/d/1E1RAb6iOMZ9U4ZWemLsZJPPHRQWyw-YJ/view?usp=sharing](https://drive.google.com/file/d/1E1RAb6iOMZ9U4ZWemLsZJPPHRQWyw-YJ/view?usp=sharing) *(Walkthrough demonstrating all 5 features, DP1, DP2, and DP3)*
 - **Design Aesthetic Reference**: **igloo.inc** *(Dark glacial palette `#050813`, arctic cyan accents `#00f2fe`, frosted glassmorphic card surfaces, scroll-staged reveals, tactile micro-interactions)*
